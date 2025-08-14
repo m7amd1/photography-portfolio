@@ -80,7 +80,7 @@ class PhotoStore {
   }
 
   public getPublicPhotoUrl(storagePath: string): string {
-    const { data } = this.supabase.storage.from("photos").getPublicUrl(storagePath)
+    const { data } = this.supabase.storage.from("media").getPublicUrl(storagePath)
     return data?.publicUrl || "/placeholder.svg"
   }
 
@@ -118,7 +118,7 @@ class PhotoStore {
     const storagePath = `${categoryName}/${Date.now()}.${fileExtension}`
 
     const { data: uploadData, error: uploadError } = await this.supabase.storage
-      .from("photos")
+      .from("media")
       .upload(storagePath, file, {
         cacheControl: "3600",
         upsert: false,
@@ -136,7 +136,7 @@ class PhotoStore {
 
     if (error) {
       console.error("Error inserting photo metadata:", error)
-      await this.supabase.storage.from("photos").remove([storagePath])
+      await this.supabase.storage.from("media").remove([storagePath])
       throw error
     }
 
@@ -153,7 +153,7 @@ class PhotoStore {
       return false
     }
 
-    const { error: storageError } = await this.supabase.storage.from("photos").remove([photoToDelete.storage_path])
+    const { error: storageError } = await this.supabase.storage.from("media").remove([photoToDelete.storage_path])
 
     if (storageError) {
       console.error("Error deleting file from storage:", storageError)

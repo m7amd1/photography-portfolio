@@ -4,6 +4,7 @@ import { Playfair_Display, Inter } from "next/font/google";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import "./globals.css";
+import { AuthProvider } from "@/components/AuthProvider";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -37,9 +38,11 @@ export default function RootLayout({
         className="font-sans antialiased min-h-screen flex flex-col"
         cz-shortcut-listen="true"
       >
-        <Navigation />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <AuthProvider>
+          <Navigation />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );

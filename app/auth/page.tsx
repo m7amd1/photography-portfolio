@@ -25,8 +25,17 @@ export default function LoginPage() {
   // Redirect if already logged in
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         if (event === "SIGNED_IN" && session) {
+          try {
+            await fetch("/api/auth/callback", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ event, session }),
+            });
+          } catch (e) {
+            console.warn("Cookie sync failed", e);
+          }
           router.push("/dashboard");
         }
       }
@@ -45,12 +54,19 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) setError(error.message);
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    // Proactively redirect on successful sign-in
+    router.push("/dashboard");
     setLoading(false);
   };
 

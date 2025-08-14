@@ -15,13 +15,14 @@ import { useRouter } from "next/navigation";
 import { Toast } from "@/components/toast";
 import { PhotoStore, Photo, Category } from "@/lib/photo-store";
 import { supabase } from "../../lib/supabaseClient";
+import { AdminBadge, AdminOnly } from "@/components/AdminBadge";
+import { useAuth } from "@/components/AuthProvider";
 export default function dashboardPage() {
   const router = useRouter();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [categories, setCategories] = useState<Category[]>([]); // State for categories
   const [showAddForm, setShowAddForm] = useState(false);
-  const [auth, setAuth] = useState(false);
-  const [loadingAuth, setLoadingAuth] = useState(true);
+  const { loading, user, isAdmin } = useAuth();
   const [newPhoto, setNewPhoto] = useState({
     category_id: "",
     file: null as File | null,
@@ -35,7 +36,7 @@ export default function dashboardPage() {
     message: "",
     type: "success",
   });
-  const [confirmToast, setConfirmToast] = useState<{
+  const [confirmToast, setConfirmToast] = useState<{ 
     show: boolean;
     photoId: string;
   }>({
@@ -47,35 +48,10 @@ export default function dashboardPage() {
   const photoStore = PhotoStore.getInstance();
 
   useEffect(() => {
-    async function checkAuth() {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        router.push("/auth");
-        setAuth(false);
-      } else {
-        setAuth(true);
-      }
-
-      setLoadingAuth(false); // done checking
+    if (!loading && !user) {
+      router.push("/auth");
     }
-
-    checkAuth();
-
-    // Subscribe to auth changes (optional)
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        router.push("/auth");
-        setAuth(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [router]);
+  }, [loading, user, router]);
 
   useEffect(() => {
     // async function checkAuth() {
@@ -205,7 +181,7 @@ export default function dashboardPage() {
     router.push("/auth");
   };
 
-  if (loadingAuth) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         Loading...
@@ -213,6 +189,7 @@ export default function dashboardPage() {
     );
   }
 
+  // Continue with existing dashboard UI below
   return (
     <>
       <div className="min-h-screen bg-gray-50 py-8">
@@ -228,7 +205,8 @@ export default function dashboardPage() {
                   Manage your photography portfolio
                 </p>
               </div>
-              <div className="flex space-x-4">
+              <div className="flex items-center space-x-4">
+                {isAdmin && <AdminBadge />}
                 <Button
                   onClick={() => setShowAddForm(!showAddForm)}
                   className="bg-gray-900 hover:bg-gray-800 cursor-pointer"
