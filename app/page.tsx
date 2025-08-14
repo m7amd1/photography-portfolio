@@ -1,105 +1,88 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import Image from "next/image";
-import { useState, useEffect, useCallback } from "react";
-import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
-import { cn } from "@/lib/utils";
+import Link from "next/link"
+import Image from "next/image"
+import { useState, useEffect, useCallback } from "react"
+import { useIntersectionObserver } from "@/hooks/use-intersection-observer"
+import { cn } from "@/lib/utils"
+import { PhotoStore, Photo } from "@/lib/photo-store" // Import Photo interface
 
 export default function HomePage() {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [showScrollTop, setShowScrollTop] = useState(false);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-  const [gridImages] = useState(() => {
-    const photos: any[] = [];
-    let id = 1;
-    const categories = [
-      "Events",
-      "Wedding",
-      "Portrait",
-      "Commercial",
-      "Food",
-      "Cities",
-    ];
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [showScrollTop, setShowScrollTop] = useState(false)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
+  const [gridImages, setGridImages] = useState<Photo[]>([])
 
-    for (let i = 0; i < 20; i++) {
-      const category =
-        categories[Math.floor(Math.random() * categories.length)];
-      photos.push({
-        id: id++,
-        title: `Gallery Image ${i + 1}`,
-        url_m: `/24.png`,
-        url_l: `/24.png`,
-        tags: category.toLowerCase(),
-        category: category,
-        fallback: "/placeholder.svg",
-      });
-    }
-    return photos;
-  });
+  const photoStore = PhotoStore.getInstance()
 
-  const filteredPhotos = gridImages;
+  const filteredPhotos = gridImages // On home page, all displayed photos are "filtered" to be the top 20
 
   useEffect(() => {
-    setIsLoaded(true);
+    setIsLoaded(true)
+
+    const unsubscribe = photoStore.subscribe(() => {
+      setGridImages(photoStore.getPhotos().slice(0, 20)) // Limit to 20 images for home page
+    })
+    photoStore.fetchPhotos() // Fetch photos on component mount
 
     const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 400);
-    };
+      setShowScrollTop(window.scrollY > 400)
+    }
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    window.addEventListener("scroll", handleScroll)
+    return () => {
+      window.removeEventListener("scroll", handleScroll)
+      unsubscribe()
+    }
+  }, [])
 
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
       behavior: "smooth",
-    });
-  };
+    })
+  }
 
   const openLightbox = (index: number) => {
-    setCurrentPhotoIndex(index);
-    setLightboxOpen(true);
-    document.body.style.overflow = "hidden";
-  };
+    setCurrentPhotoIndex(index)
+    setLightboxOpen(true)
+    document.body.style.overflow = "hidden"
+  }
 
   const closeLightbox = () => {
-    setLightboxOpen(false);
-    document.body.style.overflow = "unset";
-  };
+    setLightboxOpen(false)
+    document.body.style.overflow = "unset"
+  }
 
   const nextPhoto = useCallback(() => {
-    setCurrentPhotoIndex((prev) => (prev + 1) % filteredPhotos.length);
-  }, [filteredPhotos.length]);
+    setCurrentPhotoIndex((prev) => (prev + 1) % filteredPhotos.length)
+  }, [filteredPhotos.length])
 
   const prevPhoto = useCallback(() => {
-    setCurrentPhotoIndex(
-      (prev) => (prev - 1 + filteredPhotos.length) % filteredPhotos.length
-    );
-  }, [filteredPhotos.length]);
+    setCurrentPhotoIndex((prev) => (prev - 1 + filteredPhotos.length) % filteredPhotos.length)
+  }, [filteredPhotos.length])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!lightboxOpen) return;
+      if (!lightboxOpen) return
 
       switch (e.key) {
         case "Escape":
-          closeLightbox();
-          break;
+          closeLightbox()
+          break
         case "ArrowRight":
-          nextPhoto();
-          break;
+          nextPhoto()
+          break
         case "ArrowLeft":
-          prevPhoto();
-          break;
+          prevPhoto()
+          break
       }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [lightboxOpen, nextPhoto, prevPhoto]);
+    }
+    
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [lightboxOpen, nextPhoto, prevPhoto])
 
   return (
     <div className="min-h-screen">
@@ -114,9 +97,7 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div
               className={`transition-all duration-1500 delay-300 ${
-                isLoaded
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 translate-x-8"
+                isLoaded ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
               }`}
             >
               <div className="relative aspect-[3/4] max-w-md mx-auto">
@@ -132,20 +113,14 @@ export default function HomePage() {
             </div>
             <div
               className={`space-y-8 transition-all duration-1500 ${
-                isLoaded
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 -translate-x-8"
+                isLoaded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"
               }`}
             >
               <div className="space-y-4">
-                <div className="text-2xl sm:text-3xl text-gray-700 font-light">
-                  Where Light Meets Emotion
-                </div>
+                <div className="text-2xl sm:text-3xl text-gray-700 font-light">Where Light Meets Emotion</div>
                 <div className="space-y-2">
                   <h1 className="font-serif text-5xl sm:text-6xl lg:text-5xl font-bold">
-                    <span className="text-yellow-500 tracking-tight pr-2">
-                      Photography
-                    </span>
+                    <span className="text-yellow-500 tracking-tight pr-2">Photography</span>
                     that speaks louder than words.
                   </h1>
                 </div>
@@ -163,15 +138,12 @@ export default function HomePage() {
                 All <span className="font-serif font-bold">Good</span>
               </div>
               <div className="text-black text-2xl sm:text-3xl lg:text-4xl font-light italic">
-                things start with the letter{" "}
-                <span className="text-5xl sm:text-6xl font-serif">'P'</span>
+                things start with the letter <span className="text-5xl sm:text-6xl font-serif">'P'</span>
               </div>
             </div>
 
             <div className="pt-5">
-              <div className="text-black text-3xl sm:text-4xl italic font-serif">
-                Photography
-              </div>
+              <div className="text-black text-3xl sm:text-4xl italic font-serif">Photography</div>
             </div>
           </div>
         </div>
@@ -182,7 +154,7 @@ export default function HomePage() {
           {gridImages.map((image, index) => {
             const [ref, isIntersecting] = useIntersectionObserver({
               threshold: 0.1,
-            });
+            })
 
             return (
               <div
@@ -190,24 +162,22 @@ export default function HomePage() {
                 ref={ref as React.RefObject<HTMLDivElement>}
                 className={cn(
                   "group cursor-pointer transition-all duration-700 ease-out",
-                  isIntersecting
-                    ? "opacity-100 scale-100"
-                    : "opacity-0 scale-90"
+                  isIntersecting ? "opacity-100 scale-100" : "opacity-0 scale-90",
                 )}
                 style={{ transitionDelay: `${index * 75}ms` }}
                 onClick={() => openLightbox(index)}
               >
                 <div className="relative aspect-square overflow-hidden cursor-pointer shadow-sm group-hover:shadow-lg transition-all duration-500">
                   <Image
-                    src={image.url_m}
+                    src={photoStore.getPublicPhotoUrl(image.storage_path)}
                     alt={image.title}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                     loading="lazy"
                     onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = image.fallback;
+                      const target = e.target as HTMLImageElement
+                      target.src = "/placeholder.svg"
                     }}
                   />
                   {/* Black overlay on hover */}
@@ -216,7 +186,7 @@ export default function HomePage() {
                   <div className="absolute inset-0 border-2 border-transparent group-hover:border-white/20 transition-all duration-500"></div>
                 </div>
               </div>
-            );
+            )
           })}
         </div>
 
@@ -270,24 +240,14 @@ export default function HomePage() {
           className="fixed bottom-8 right-8 z-50 w-12 h-12 bg-gray-900 hover:bg-gray-800 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 flex items-center justify-center cursor-pointer"
           aria-label="Scroll to top"
         >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 10l7-7m0 0l7 7m-7-7v18"
-            />
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
           </svg>
         </button>
       )}
 
       {/* Lightbox Modal */}
-      {lightboxOpen && (
+      {lightboxOpen && filteredPhotos.length > 0 && (
         <div className="fixed inset-0 z-50 lightbox-overlay flex items-center justify-center p-4">
           <div className="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center">
             <button
@@ -295,18 +255,8 @@ export default function HomePage() {
               className="absolute top-4 right-4 z-10 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 cursor-pointer"
               aria-label="Close lightbox"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
@@ -315,18 +265,8 @@ export default function HomePage() {
               className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 cursor-pointer"
               aria-label="Previous photo"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
 
@@ -335,46 +275,33 @@ export default function HomePage() {
               className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 cursor-pointer"
               aria-label="Next photo"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
 
             <div className="relative max-w-full max-h-full">
               <Image
-                src={
-                  filteredPhotos[currentPhotoIndex]?.url_l ||
-                  filteredPhotos[currentPhotoIndex]?.url_m
-                }
+                src={photoStore.getPublicPhotoUrl(filteredPhotos[currentPhotoIndex]?.storage_path || "")}
                 alt={filteredPhotos[currentPhotoIndex]?.title || ""}
                 width={1200}
                 height={800}
                 className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
                 priority
                 onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src =
-                    filteredPhotos[currentPhotoIndex]?.fallback || "/hero.png";
+                  const target = e.target as HTMLImageElement
+                  target.src = "/placeholder.svg"
                 }}
               />
 
+              {/* image title and category */}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 rounded-b-lg">
                 <h3 className="text-white text-xl font-serif font-light mb-2">
                   {filteredPhotos[currentPhotoIndex]?.title}
                 </h3>
                 <div className="flex justify-between items-center">
                   <p className="text-white/60 text-sm font-light">
-                    {filteredPhotos[currentPhotoIndex]?.category}
+                    {filteredPhotos[currentPhotoIndex]?.category_name}
                   </p>
                   <p className="text-white/60 text-sm font-light">
                     {currentPhotoIndex + 1} of {filteredPhotos.length}
@@ -392,5 +319,5 @@ export default function HomePage() {
         </div>
       )}
     </div>
-  );
+  )
 }
