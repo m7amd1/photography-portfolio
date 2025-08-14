@@ -66,7 +66,7 @@ Run this in SQL Editor to check current storage policies:
 SELECT 
     schemaname,
     tablename,
-    policyname
+    policyname  
 FROM pg_policies
 WHERE schemaname = 'storage'
 AND tablename = 'objects';
