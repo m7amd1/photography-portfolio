@@ -119,6 +119,9 @@
   body {
     @apply bg-background text-foreground;
   }
+  h1 {
+    font-size: 2em; /* Base font size for h1 to satisfy Lighthouse, overridden by Tailwind utilities */
+  }
 }
 
 /* Custom styles for photography website */
