@@ -27,8 +27,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!isMounted) return
       setSession(data.session)
       setUser(data.session?.user ?? null)
-      setIsAdmin(await fetchIsAdmin())
-      setLoading(false)
+      try {
+        setIsAdmin(await fetchIsAdmin())
+      } catch (error) {
+        console.error("Error fetching admin status in AuthProvider init:", error)
+        setIsAdmin(false) // Default to not admin on error
+      } finally {
+        setLoading(false)
+      }
     }
 
     init()
@@ -37,7 +43,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!isMounted) return
       setSession(newSession)
       setUser(newSession?.user ?? null)
-      setIsAdmin(await fetchIsAdmin())
+      try {
+        setIsAdmin(await fetchIsAdmin())
+      } catch (error) {
+        console.error("Error fetching admin status on auth state change:", error)
+        setIsAdmin(false) // Default to not admin on error
+      }
     })
 
     return () => {
