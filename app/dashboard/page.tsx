@@ -190,7 +190,7 @@ export default function dashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
               <div>
                 <h1 className="text-3xl font-serif font-bold text-gray-900">
                   Photo Management
@@ -199,7 +199,7 @@ export default function dashboardPage() {
                   Manage your photography portfolio
                 </p>
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-4 mt-4 md:mt-0">
                 {isAdmin && <AdminBadge />}
                 <Button
                   onClick={() => setShowAddForm(!showAddForm)}
@@ -431,7 +431,7 @@ export default function dashboardPage() {
                         {photo.category_name}
                       </p>
                     </div>
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute top-2 right-2">
                       <Button
                         size="sm"
                         variant="destructive"
