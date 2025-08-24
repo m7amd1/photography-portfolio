@@ -12,7 +12,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import { Toast } from "@/components/toast";
 import { PhotoStore, Photo, Category } from "@/lib/photo-store";
 import { supabase } from "../../lib/supabaseClient";
 import { AdminBadge, AdminOnly } from "@/components/AdminBadge";
@@ -36,7 +35,7 @@ export default function dashboardPage() {
     message: "",
     type: "success",
   });
-  const [confirmToast, setConfirmToast] = useState<{ 
+  const [confirmToast, setConfirmToast] = useState<{
     show: boolean;
     photoId: string;
   }>({
@@ -136,10 +135,7 @@ export default function dashboardPage() {
     }
 
     try {
-      await photoStore.addPhoto(
-        newPhoto.category_id,
-        newPhoto.file
-      );
+      await photoStore.addPhoto(newPhoto.category_id, newPhoto.file);
       setNewPhoto({
         category_id: categories[0]?.id || "",
         file: null,
@@ -178,7 +174,6 @@ export default function dashboardPage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push("/auth");
   };
 
   if (loading) {
@@ -189,7 +184,6 @@ export default function dashboardPage() {
     );
   }
 
-  // Continue with existing dashboard UI below
   return (
     <>
       <div className="min-h-screen bg-gray-50 py-8">
@@ -412,7 +406,7 @@ export default function dashboardPage() {
               ));
             })()}
           </div>
-            
+
           {/* Photos Grid */}
           <Card>
             <CardHeader>
@@ -491,7 +485,8 @@ export default function dashboardPage() {
                 Delete Photo
               </h3>
               <p className="text-gray-600 text-center mb-6">
-                Are you sure you want to delete this photo? This action cannot be undone.
+                Are you sure you want to delete this photo? This action cannot
+                be undone.
               </p>
               <div className="flex space-x-3">
                 <Button
