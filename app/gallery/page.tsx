@@ -32,24 +32,28 @@ export default function GalleryPage() {
 
         // Fetch categories first, then photos
         await photoStore.fetchCategories()
+        setCategories(photoStore.getCategories())
+        setIsLoadingCategories(false)
+
         await photoStore.fetchPhotos()
+        setPhotos(photoStore.getPhotos())
+        setIsLoadingPhotos(false)
         
       } catch (error) {
         console.error("Error initializing gallery data:", error)
+        setIsLoadingCategories(false) // Ensure loading is false even on error
+        setIsLoadingPhotos(false) // Ensure loading is false even on error
       }
     }
 
     // Set up subscriptions for real-time updates
+    // These will handle subsequent updates, initial load is handled above
     const unsubscribePhotos = photoStore.subscribe(() => {
-      const updatedPhotos = photoStore.getPhotos()
-      setPhotos(updatedPhotos)
-      setIsLoadingPhotos(false)
+      setPhotos(photoStore.getPhotos())
     })
 
     const unsubscribeCategories = photoStore.subscribeToCategories(() => {
-      const updatedCategories = photoStore.getCategories()
-      setCategories(updatedCategories)
-      setIsLoadingCategories(false)
+      setCategories(photoStore.getCategories())
     })
 
     // Initialize data
