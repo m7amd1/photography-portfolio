@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
+import TypewriterEffect from "@/components/TypewriterEffect";
 import { cn } from "@/lib/utils";
 import { PhotoStore, Photo } from "@/lib/photo-store";
 import PhotoCard from "@/components/PhotoCard";
@@ -146,8 +147,15 @@ export default function HomePage() {
               }`}
             >
               <div className="space-y-4">
-                <div className="text-2xl sm:text-3xl text-gray-700 font-light">
-                  Where Light Meets Emotion
+                <div className="text-2xl sm:text-3xl text-gray-700 font-light min-h-[40px]">
+                  <TypewriterEffect
+                    phrases={[
+                      "Where Light Meets Emotion",
+                      "Your Story Through Our Lens",
+                    ]}
+                    typingSpeed={100}
+                    deletingSpeed={70}
+                  />
                 </div>
                 <div className="space-y-2">
                   <h1 className="font-serif text-5xl sm:text-6xl lg:text-5xl font-bold">
