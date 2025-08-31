@@ -12,7 +12,6 @@ export function Navigation() {
   const navItems = [
     { href: "/", label: "Home" },
     { href: "/gallery", label: "Gallery" },
-    { href: "/videos", label: "Videos" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
     { href: "/auth", label: "" },
