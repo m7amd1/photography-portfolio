@@ -29,26 +29,34 @@ export default function HomePage() {
     // Create a copy of the array to avoid modifying the original
     const shuffled = [...photos];
 
-    // Fisher-Yates shuffle algorithm
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
 
-    // Return the first 'count' items
     return shuffled.slice(0, count);
   };
 
   useEffect(() => {
     setIsLoaded(true);
 
+    const initializeHomeData = async () => {
+      // Ensure categories are fetched first for photo category names
+      await photoStore.fetchCategories();
+      // Then fetch photos
+      await photoStore.fetchPhotos();
+      const allPhotos = photoStore.getPhotos();
+      const randomPhotos = getRandomPhotos(allPhotos, 20);
+      setGridImages(randomPhotos);
+    };
+
+    initializeHomeData();
+
     const unsubscribe = photoStore.subscribe(() => {
       const allPhotos = photoStore.getPhotos();
       const randomPhotos = getRandomPhotos(allPhotos, 20);
       setGridImages(randomPhotos);
     });
-
-    photoStore.fetchPhotos(); // Fetch photos on component mount
 
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 400);
@@ -358,14 +366,14 @@ export default function HomePage() {
                 }}
               />
 
-              {/* image title and category */}
+              {/* image title and category, length */}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 rounded-b-lg">
-                <h3 className="text-white text-xl font-serif font-light mb-2">
+                {/* <h3 className="text-white text-xl font-serif font-light mb-2">
                   {filteredPhotos[currentPhotoIndex]?.title}
-                </h3>
+                </h3> */}
                 <div className="flex justify-between items-center">
                   <p className="text-white/60 text-sm font-light">
-                    {filteredPhotos[currentPhotoIndex]?.category_name}
+                    {/* {filteredPhotos[currentPhotoIndex]?.category_name} */}
                   </p>
                   <p className="text-white/60 text-sm font-light">
                     {currentPhotoIndex + 1} of {filteredPhotos.length}

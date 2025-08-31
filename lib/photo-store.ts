@@ -1,14 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
 
 export interface Photo {
-  id: string; // uuid
-  title?: string; // Make title optional
-  storage_path: string; // This will store the path in the Supabase storage bucket
-  category_id: string; // uuid
+  id: string;
+  title?: string;
+  storage_path: string;
+  category_id: string;
   created_at: string;
   updated_at: string;
-  user_id: string; // Add user_id to the Photo interface
-  // For display purposes, we'll add category_name by joining
+  user_id: string;
   category_name?: string;
 }
 
