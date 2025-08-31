@@ -1,16 +1,7 @@
-import { withNextVideo } from 'next-video/process';
+import type { NextConfig } from "next";
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  images: {
-    unoptimized: true,
-  }
-}
+const nextConfig: NextConfig = {
+  /* config options here */
+};
 
-export default withNextVideo(nextConfig);
+export default nextConfig;
