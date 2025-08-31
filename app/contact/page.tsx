@@ -1,6 +1,5 @@
 "use client";
 
-import type React from "react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -52,7 +51,6 @@ export default function ContactPage() {
     defaultValues: {
       name: "",
       email: "",
-      phone: "",
       sessionType: "",
       message: "",
     },
@@ -233,7 +231,7 @@ export default function ContactPage() {
                         aria-label="Instagram"
                       >
                         <svg
-                          className="h-5 w-5"
+                          className="h-6 w-6"
                           fill="currentColor"
                           viewBox="0 0 24 24"
                         >

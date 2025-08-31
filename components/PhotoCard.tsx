@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { cn } from "@/lib/utils";
 import { Photo, PhotoStore } from "@/lib/photo-store";
-import React from "react";
 
 interface PhotoCardProps {
   photo: Photo;

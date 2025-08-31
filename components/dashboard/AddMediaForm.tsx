@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Photo, Category } from "@/lib/photo-store";
+import { Category } from "@/lib/photo-store";
 import { useToast } from "@/components/ui/use-toast";
 
 interface AddMediaFormProps {

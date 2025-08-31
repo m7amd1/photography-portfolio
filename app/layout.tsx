@@ -1,11 +1,10 @@
-import type React from "react";
 import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
-import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { Toaster } from "@/components/ui/toaster";
+import "./globals.css";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -26,6 +25,7 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.png",
   },
+  keywords: ["photography", "portfolio", "professional", "visual stories"],
 };
 
 export default function RootLayout({

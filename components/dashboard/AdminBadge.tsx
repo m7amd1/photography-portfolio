@@ -1,6 +1,4 @@
-"use client"
-
-import React from "react"
+"use client";
 
 export function AdminBadge({ className = "" }: { className?: string }) {
   return (
@@ -12,10 +10,16 @@ export function AdminBadge({ className = "" }: { className?: string }) {
     >
       Admin
     </span>
-  )
+  );
 }
 
-export function AdminOnly({ isAdmin, children }: { isAdmin: boolean; children: React.ReactNode }) {
-  if (!isAdmin) return null
-  return <>{children}</>
+export function AdminOnly({
+  isAdmin,
+  children,
+}: {
+  isAdmin: boolean;
+  children: React.ReactNode;
+}) {
+  if (!isAdmin) return null;
+  return <>{children}</>;
 }

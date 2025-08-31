@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 interface TypewriterEffectProps {
@@ -31,9 +31,13 @@ const TypewriterEffect: React.FC<TypewriterEffectProps> = ({
     const handleTyping = () => {
       const currentFullPhrase = phrases[currentPhraseIndex];
       if (isDeleting) {
-        setCurrentText((prev) => currentFullPhrase.substring(0, prev.length - 1));
+        setCurrentText((prev) =>
+          currentFullPhrase.substring(0, prev.length - 1)
+        );
       } else {
-        setCurrentText((prev) => currentFullPhrase.substring(0, prev.length + 1));
+        setCurrentText((prev) =>
+          currentFullPhrase.substring(0, prev.length + 1)
+        );
       }
     };
 

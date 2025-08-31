@@ -24,22 +24,22 @@ export default function LoginPage() {
 
   // Redirect if already logged in
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === "SIGNED_IN" && session) {
-          try {
-            await fetch("/api/auth/callback", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ event, session }),
-            });
-          } catch (e) {
-            console.warn("Cookie sync failed", e);
-          }
-          router.push("/dashboard");
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        try {
+          await fetch("/api/auth/callback", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ event, session }),
+          });
+        } catch (e) {
+          console.warn("Cookie sync failed", e);
         }
+        router.push("/dashboard");
       }
-    );
+    });
 
     // Check immediately in case session exists
     supabase.auth.getSession().then(({ data }) => {
@@ -90,6 +90,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoFocus
               />
             </div>
             <div className="grid gap-2">
@@ -103,7 +104,11 @@ export default function LoginPage() {
               />
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full cursor-pointer"
+              disabled={loading}
+            >
               {loading ? "Logging in..." : "Login"}
             </Button>
           </form>
