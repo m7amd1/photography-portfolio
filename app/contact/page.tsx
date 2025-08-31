@@ -37,7 +37,7 @@ const formSchema = z.object({
     message: "Invalid email address.",
   }),
   phone: z.string().optional(),
-  sessionType: z.string().optional(),
+  sessionType: z.string().min(1, { message: "Please select a session type." }),
   message: z.string().min(10, {
     message: "Message must be at least 10 characters.",
   }),
@@ -266,7 +266,7 @@ export default function ContactPage() {
                   : "opacity-0 -translate-x-8"
               }`}
             >
-              <Card className="border-0 shadow-none">
+              <Card className="border-0 shadow-none py-0 pb-6">
                 <CardContent className="p-0">
                   <div className="space-y-8">
                     <div className="space-y-4">
@@ -325,72 +325,48 @@ export default function ContactPage() {
                           />
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                          <FormField
-                            control={form.control}
-                            name="phone"
-                            render={({ field }) => (
-                              <FormItem className="space-y-2">
-                                <FormLabel className="text-sm font-medium text-gray-700">
-                                  Phone Number
-                                </FormLabel>
+                        <FormField
+                          control={form.control}
+                          name="sessionType"
+                          render={({ field }) => (
+                            <FormItem className="space-y-2">
+                              <FormLabel className="text-sm font-medium text-gray-700">
+                                Session Type *
+                              </FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
                                 <FormControl>
-                                  <Input
-                                    type="tel"
-                                    placeholder="Your phone number (optional)"
-                                    className="w-full p-3 focus:border-gray-900 focus:outline-none transition-colors text-gray-900 placeholder-gray-400"
-                                    {...field}
-                                  />
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select a session type" />
+                                  </SelectTrigger>
                                 </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="sessionType"
-                            render={({ field }) => (
-                              <FormItem className="space-y-2">
-                                <FormLabel className="text-sm font-medium text-gray-700">
-                                  Session Type
-                                </FormLabel>
-                                <Select
-                                  onValueChange={field.onChange}
-                                  defaultValue={field.value}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="Select a session type" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectGroup>
-                                      <SelectItem value="portrait">
-                                        Portrait Session
-                                      </SelectItem>
-                                      <SelectItem value="wedding">
-                                        Wedding Photography
-                                      </SelectItem>
-                                      <SelectItem value="event">
-                                        Event Photography
-                                      </SelectItem>
-                                      <SelectItem value="family">
-                                        Family Session
-                                      </SelectItem>
-                                      <SelectItem value="corporate">
-                                        Corporate Photography
-                                      </SelectItem>
-                                      <SelectItem value="other">
-                                        Other
-                                      </SelectItem>
-                                    </SelectGroup>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                                <SelectContent>
+                                  <SelectGroup>
+                                    <SelectItem value="portrait">
+                                      Portrait Session
+                                    </SelectItem>
+                                    <SelectItem value="wedding">
+                                      Wedding Photography
+                                    </SelectItem>
+                                    <SelectItem value="event">
+                                      Event Photography
+                                    </SelectItem>
+                                    <SelectItem value="family">
+                                      Family Session
+                                    </SelectItem>
+                                    <SelectItem value="corporate">
+                                      Corporate Photography
+                                    </SelectItem>
+                                    <SelectItem value="other">Other</SelectItem>
+                                  </SelectGroup>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
                         <FormField
                           control={form.control}

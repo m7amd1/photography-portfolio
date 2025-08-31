@@ -6,12 +6,12 @@ import { PhotoStore, Photo, Category } from "@/lib/photo-store";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
-import { DashboardHeader } from "@/components/DashboardHeader";
-import { AddMediaForm } from "@/components/AddMediaForm";
-import { DashboardStats } from "@/components/DashboardStats";
-import { ImageGrid } from "@/components/ImageGrid";
-import { VideoGrid } from "@/components/VideoGrid";
-import { DeleteConfirmationToast } from "@/components/DeleteConfirmationToast";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { AddMediaForm } from "@/components/dashboard/AddMediaForm";
+import { DashboardStats } from "@/components/dashboard/DashboardStats";
+import { ImageGrid } from "@/components/dashboard/ImageGrid";
+import { VideoGrid } from "@/components/dashboard/VideoGrid";
+import { DeleteConfirmationToast } from "@/components/dashboard/DeleteConfirmationToast";
 
 interface Video {
   id: string;

@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { AdminBadge } from "@/components/AdminBadge";
+import { AdminBadge } from "@/components/dashboard/AdminBadge";
 
 interface DashboardHeaderProps {
   title?: string;
