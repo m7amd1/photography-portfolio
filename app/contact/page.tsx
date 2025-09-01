@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+// import { sendEmail } from "@/lib/sendEmail";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -75,7 +76,7 @@ export default function ContactPage() {
   };
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+    // sendEmail()
     toast.success(
       "Thank you for your message! I'll get back to you within 24 hours."
     );
