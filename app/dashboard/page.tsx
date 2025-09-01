@@ -26,6 +26,7 @@ export default function DashboardPage() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
   const { loading, user, isAdmin } = useAuth();
   const [newPhoto, setNewPhoto] = useState<{
     category_id: string;
@@ -49,12 +50,6 @@ export default function DashboardPage() {
   const [dragActive, setDragActive] = useState(false);
 
   const photoStore = PhotoStore.getInstance();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/auth");
-    }
-  }, [loading, user, router]);
 
   const fetchVideos = useCallback(async () => {
     try {
@@ -87,40 +82,51 @@ export default function DashboardPage() {
     }
   }, []);
 
+  // Effect for handling authentication and redirection
   useEffect(() => {
-    const initializeDashboardData = async () => {
-      // Fetch categories first
-      await photoStore.fetchCategories();
-      setCategories(photoStore.getCategories());
+    if (!loading && !user) {
+      router.push("/auth");
+    }
+  }, [loading, user, router]);
 
-      // Then fetch photos
-      await photoStore.fetchPhotos();
-      setPhotos(photoStore.getPhotos());
+  // Effect for fetching data and setting up subscriptions
+  useEffect(() => {
+    if (user) {
+      const initializeDashboardData = async () => {
+        setDashboardLoading(true);
+        try {
+          await photoStore.fetchCategories();
+          await photoStore.fetchPhotos();
+          await fetchVideos();
+        } catch (error) {
+          console.error("Error initializing dashboard data:", error);
+          toast.error("Failed to load dashboard data.");
+        } finally {
+          setDashboardLoading(false);
+        }
+      };
 
-      // Fetch videos
-      await fetchVideos();
-    };
+      initializeDashboardData();
 
-    initializeDashboardData();
+      const unsubscribePhotos = photoStore.subscribe(() => {
+        setPhotos(photoStore.getPhotos());
+      });
+      const unsubscribeCategories = photoStore.subscribeToCategories(() => {
+        setCategories(photoStore.getCategories());
+        if (photoStore.getCategories().length > 0 && !newPhoto.category_id) {
+          setNewPhoto((prev) => ({
+            ...prev,
+            category_id: photoStore.getCategories()[0].id,
+          }));
+        }
+      });
 
-    const unsubscribePhotos = photoStore.subscribe(() => {
-      setPhotos(photoStore.getPhotos());
-    });
-    const unsubscribeCategories = photoStore.subscribeToCategories(() => {
-      setCategories(photoStore.getCategories());
-      if (photoStore.getCategories().length > 0 && !newPhoto.category_id) {
-        setNewPhoto((prev) => ({
-          ...prev,
-          category_id: photoStore.getCategories()[0].id,
-        }));
-      }
-    });
-
-    return () => {
-      unsubscribePhotos();
-      unsubscribeCategories();
-    };
-  }, [fetchVideos, newPhoto.category_id]);
+      return () => {
+        unsubscribePhotos();
+        unsubscribeCategories();
+      };
+    }
+  }, [user, fetchVideos]);
 
   const handleFileSelect = (files: File[]) => {
     const imageFiles = files.filter((file) => file.type.startsWith("image/"));
@@ -292,9 +298,6 @@ export default function DashboardPage() {
       try {
         const success = await photoStore.deletePhoto(confirmToast.photoId);
         if (success) {
-          setPhotos((prevPhotos) =>
-            prevPhotos.filter((photo) => photo.id !== confirmToast.photoId)
-          );
           toast.success(`Photo has been deleted`, {
             description: "The photo has been removed from your gallery.",
           });
@@ -321,9 +324,10 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    router.push("/auth");
   };
 
-  if (loading) {
+  if (loading || dashboardLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         Loading...
@@ -364,7 +368,7 @@ export default function DashboardPage() {
             videos={videos}
             categories={categories}
           />
-
+  
           <ImageGrid
             key={`image-grid-${photos.length}`}
             photos={photos}
