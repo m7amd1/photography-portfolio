@@ -35,6 +35,8 @@ export function VideoGrid({ videos, onDeleteVideo }: VideoGridProps) {
                 <video
                   src={video.publicUrl}
                   controls
+                  autoPlay={true}
+                  muted={true}
                   className="object-cover transition-transform duration-300 group-hover:scale-105 w-full h-full"
                 />
               </div>

@@ -127,7 +127,7 @@ export default function PhotoGallery({ photoStore }: PhotoGalleryProps) {
           <div className="space-y-8">
             <Link
               href="/gallery"
-              className="px-8 py-3 text-base font-light border border-gray-900 hover:bg-gray-800 transition-all duration-500 bg-black text-white rounded-md cursor-pointer"
+              className="px-8 py-3 text-base font-light border border-black hover:bg-black/70 transition-all duration-300 bg-black text-white rounded-lg cursor-pointer"
             >
               View Gallery
             </Link>

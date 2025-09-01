@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { PhotoStore, Photo, Category } from "@/lib/photo-store";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "@/components/AuthProvider";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { AddMediaForm } from "@/components/dashboard/AddMediaForm";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
@@ -37,7 +37,6 @@ export default function DashboardPage() {
   const [newVideo, setNewVideo] = useState<{ files: File[] }>({
     files: [],
   });
-  const { toast } = useToast();
   const [confirmToast, setConfirmToast] = useState<{
     show: boolean;
     photoId: string;
@@ -128,10 +127,7 @@ export default function DashboardPage() {
     if (imageFiles.length > 0) {
       setNewPhoto((prev) => ({ ...prev, files: imageFiles }));
     } else {
-      toast({
-        title: "Please select at least one image file",
-        variant: "destructive",
-      });
+      toast.error("Please select at least one image file");
     }
   };
 
@@ -144,10 +140,7 @@ export default function DashboardPage() {
         videoFiles.map((f) => f.name)
       );
     } else {
-      toast({
-        title: "Please select at least one video file",
-        variant: "destructive",
-      });
+      toast.error("Please select at least one video file");
     }
   };
 
@@ -176,10 +169,7 @@ export default function DashboardPage() {
       } else if (videoFiles.length > 0) {
         handleVideoFileSelect(videoFiles);
       } else {
-        toast({
-          title: "Please drop image(s) or video file(s)",
-          variant: "destructive",
-        });
+        toast.error("Please drop image(s) or video file(s)");
       }
     }
   };
@@ -187,10 +177,7 @@ export default function DashboardPage() {
   const handleAddPhoto = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPhoto.category_id || newPhoto.files.length === 0) {
-      toast({
-        title: "Please fill in all fields and select at least one file",
-        variant: "destructive",
-      });
+      toast.error("Please fill in all fields and select at least one file");
       return;
     }
 
@@ -203,15 +190,10 @@ export default function DashboardPage() {
         files: [],
       }); // Reset form
       setShowAddForm(false);
-      toast({
-        title: `${newPhoto.files.length} photo(s) added successfully!`,
-      });
+      toast.success(`${newPhoto.files.length} photo(s) added successfully!`);
     } catch (error) {
       console.error("Error adding photo:", error);
-      toast({
-        title: "Failed to add photo. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Failed to add photo. Please try again.");
     }
   };
 
@@ -219,10 +201,7 @@ export default function DashboardPage() {
     e.preventDefault();
     console.log("handleAddVideo called");
     if (newVideo.files.length === 0) {
-      toast({
-        title: "Please select at least one video file",
-        variant: "destructive",
-      });
+      toast.error("Please select at least one video file");
       console.log("No video file selected.");
       return;
     }
@@ -249,10 +228,7 @@ export default function DashboardPage() {
 
         if (uploadError) {
           console.error("Error uploading video:", uploadError);
-          toast({
-            title: `Failed to upload video ${file.name}. Please try again.`,
-            variant: "destructive",
-          });
+          toast.error(`Failed to upload video ${file.name}. Please try again.`);
           // Continue to next file even if one fails
           continue;
         }
@@ -263,18 +239,13 @@ export default function DashboardPage() {
         files: [],
       });
       setShowAddForm(false);
-      toast({
-        title: `${newVideo.files.length} video(s) added successfully!`,
-      });
+      toast.success(`${newVideo.files.length} video(s) added successfully!`);
 
       // Re-fetch videos after successful upload
       await fetchVideos();
     } catch (error) {
       console.error("Error adding video:", error);
-      toast({
-        title: "Failed to add video. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Failed to add video. Please try again.");
     }
   };
 
@@ -290,7 +261,6 @@ export default function DashboardPage() {
     if (confirmToast.isDeletingVideo) {
       try {
         const videoPath = `public/${confirmToast.photoId}`;
-        console.log("Attempting to delete video from storage:", videoPath);
 
         const { error } = await supabase.storage
           .from("videos")
@@ -298,10 +268,8 @@ export default function DashboardPage() {
 
         if (error) {
           console.error("Error deleting video from storage:", error);
-          toast({
-            title: "Failed to delete video.",
+          toast.error("Failed to delete video.", {
             description: `There was an error deleting the video from storage: ${error.message}`,
-            variant: "destructive",
           });
           return;
         }
@@ -309,16 +277,13 @@ export default function DashboardPage() {
         // Re-fetch videos to ensure state is in sync with Supabase
         await fetchVideos();
 
-        toast({
-          title: "Video deleted successfully!",
+        toast.success("Video deleted successfully!", {
           description: "The video has been removed from your gallery.",
         });
       } catch (error) {
         console.error("Failed to delete video:", error);
-        toast({
-          title: "Failed to delete video. Please try again.",
+        toast.error("Failed to delete video. Please try again.", {
           description: "An unexpected error occurred during video deletion.",
-          variant: "destructive",
         });
       } finally {
         setConfirmToast({ show: false, photoId: "", isDeletingVideo: false });
@@ -330,24 +295,19 @@ export default function DashboardPage() {
           setPhotos((prevPhotos) =>
             prevPhotos.filter((photo) => photo.id !== confirmToast.photoId)
           );
-          toast({
-            title: `Photo has been deleted`,
+          toast.success(`Photo has been deleted`, {
             description: "The photo has been removed from your gallery.",
           });
         } else {
-          toast({
-            title: "Failed to delete photo",
+          toast.error("Failed to delete photo", {
             description:
               "There was an error deleting the photo from the database.",
-            variant: "destructive",
           });
         }
       } catch (error) {
         console.error("Error deleting photo:", error);
-        toast({
-          title: "Failed to delete photo. Please try again.",
+        toast.error("Failed to delete photo. Please try again.", {
           description: "An unexpected error occurred during photo deletion.",
-          variant: "destructive",
         });
       } finally {
         setConfirmToast({ show: false, photoId: "", isDeletingVideo: false });

@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Category } from "@/lib/photo-store";
-import { useToast } from "@/components/ui/use-toast";
 
 interface AddMediaFormProps {
   showAddForm: boolean;
@@ -51,8 +50,6 @@ export function AddMediaForm({
   onSetNewVideo,
   onCloseForm,
 }: AddMediaFormProps) {
-  const { toast } = useToast();
-
   if (!showAddForm) return null;
 
   return (

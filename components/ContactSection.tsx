@@ -23,7 +23,7 @@ export default function ContactSection() {
           <div className="pt-8">
             <Link
               href="/contact"
-              className="w-full sm:w-auto px-12 py-4 text-base text-white font-light bg-gray-900 hover:bg-gray-800 transition-all duration-500 rounded-md cursor-pointer"
+              className="px-12 py-4 text-base font-light border border-black hover:bg-black/70 transition-all duration-300 bg-black text-white rounded-lg cursor-pointer"
             >
               Get in Touch
             </Link>

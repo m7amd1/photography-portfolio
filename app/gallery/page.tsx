@@ -366,7 +366,7 @@ export default function GalleryPage() {
           {showScrollTop && (
             <button
               onClick={scrollToTop}
-              className="fixed bottom-8 right-8 z-50 w-12 h-12 bg-gray-900 hover:bg-gray-800 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 flex items-center justify-center cursor-pointer"
+              className="fixed bottom-8 right-8 z-50 w-12 h-12 bg-black/85 hover:bg-black text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 flex items-center justify-center cursor-pointer"
               aria-label="Scroll to top"
             >
               <svg

@@ -23,7 +23,7 @@ export default function HeroSection({ isLoaded }: HeroSectionProps) {
             <div className="relative aspect-[3/4] max-w-md mx-auto">
               <Image
                 src="/hero.png"
-                alt="Photographer"
+                alt="Photographer image"
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -50,7 +50,7 @@ export default function HeroSection({ isLoaded }: HeroSectionProps) {
                 />
               </div>
               <div className="space-y-2">
-                <h1 className="font-serif text-5xl sm:text-6xl lg:text-5xl font-bold">
+                <h1 className="font-serif text-5xl sm:text-6xl lg:text-5xl font-bold leading-tight">
                   <span className="text-yellow-500 tracking-tight pr-2">
                     Photography
                   </span>

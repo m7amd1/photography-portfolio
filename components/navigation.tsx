@@ -25,7 +25,7 @@ export function Navigation() {
         <div className="flex justify-between items-center h-16">
           <Link
             href="/"
-            className="font-serif text-xl font-semibold text-gray-900"
+            className="font-serif text-xl font-semibold text-black/80"
             aria-label="Home"
           >
             Photography

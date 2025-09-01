@@ -3,7 +3,7 @@ import { Playfair_Display, Inter } from "next/font/google";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { AuthProvider } from "@/components/AuthProvider";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -43,7 +43,7 @@ export default function RootLayout({
           <Navigation />
           <main className="flex-1">{children}</main>
           <Footer />
-          <Toaster />
+          <Toaster position="bottom-right" />
         </AuthProvider>
       </body>
     </html>

@@ -243,7 +243,7 @@ export default function ContactPage() {
                     <div className="flex space-x-6">
                       <Link
                         href="#"
-                        className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                        className="text-black/70 hover:text-black transition-colors cursor-pointer"
                         aria-label="Instagram"
                       >
                         <svg
@@ -256,7 +256,7 @@ export default function ContactPage() {
                       </Link>
                       <Link
                         href="#"
-                        className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                        className="text-black/70 hover:text-black transition-colors cursor-pointer"
                         aria-label="Facebook"
                       >
                         <svg
@@ -407,7 +407,7 @@ export default function ContactPage() {
                           <Button
                             type="submit"
                             size="lg"
-                            className="w-full sm:w-auto px-12 py-4 text-base font-light bg-gray-900 hover:bg-gray-800 transition-all duration-500 rounded-md cursor-pointer"
+                            className="px-9 py-4 text-base font-light border border-black hover:bg-black/70 transition-all duration-300 bg-black text-white rounded-lg cursor-pointer"
                           >
                             Send Message
                           </Button>
@@ -425,7 +425,7 @@ export default function ContactPage() {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-50 w-12 h-12 bg-gray-900 hover:bg-gray-800 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 flex items-center justify-center cursor-pointer"
+          className="fixed bottom-8 right-8 z-50 w-12 h-12 bg-black/85 hover:bg-black text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 flex items-center justify-center cursor-pointer"
           aria-label="Scroll to top"
         >
           <svg
