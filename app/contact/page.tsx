@@ -27,7 +27,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-// import { sendEmail } from "@/lib/sendEmail";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -75,12 +74,28 @@ export default function ContactPage() {
     });
   };
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // sendEmail()
-    toast.success(
-      "Thank you for your message! I'll get back to you within 24 hours."
-    );
-    form.reset();
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (response.ok) {
+        toast.success(
+          "Thank you for your message! I'll get back to you within 24 hours."
+        );
+        form.reset();
+      } else {
+        toast.error("Failed to send message. Please try again later.");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("An unexpected error occurred. Please try again later.");
+    }
   }
 
   function onError(errors: any) {
