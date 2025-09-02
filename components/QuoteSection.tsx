@@ -9,13 +9,13 @@ export default function QuoteSection() {
             </div>
             <div className="text-black text-2xl sm:text-3xl lg:text-4xl font-light italic">
               things start with the letter
-              <span className="text-5xl sm:text-6xl font-serif">'P'</span>
+              <span className="text-5xl sm:text-6xl font-serif"> 'A'</span>
             </div>
           </div>
 
           <div className="pt-5">
             <div className="text-black text-3xl sm:text-4xl italic font-serif">
-              Photography
+              Abdallah Abumurra
             </div>
           </div>
         </div>

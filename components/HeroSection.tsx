@@ -22,7 +22,7 @@ export default function HeroSection({ isLoaded }: HeroSectionProps) {
           >
             <div className="relative aspect-[3/4] max-w-md mx-auto">
               <Image
-                src="/hero.png"
+                src="/hero.JPG"
                 alt="Photographer image"
                 fill
                 className="object-cover"

@@ -28,7 +28,8 @@ export function Navigation() {
             className="font-serif text-xl font-semibold text-black/80"
             aria-label="Home"
           >
-            Photography
+            Abdallah{" "}
+            <span className="text-yellow-500 tracking-tight ">Abumurra</span>
           </Link>
 
           <div className="hidden md:flex space-x-8">

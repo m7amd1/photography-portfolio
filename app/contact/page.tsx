@@ -174,7 +174,7 @@ export default function ContactPage() {
                         <p className="text-sm font-medium text-gray-700 mb-1">
                           Email
                         </p>
-                        <p className="text-gray-900">hello@photography.com</p>
+                        <p className="text-gray-900">abdmurra.ads@gmail.com</p>
                       </div>
                     </div>
 
@@ -198,7 +198,7 @@ export default function ContactPage() {
                         <p className="text-sm font-medium text-gray-700 mb-1">
                           Phone
                         </p>
-                        <p className="text-gray-900">(555) 123-4567</p>
+                        <p className="text-gray-900">(972) 599573632</p>
                       </div>
                     </div>
 
@@ -228,9 +228,7 @@ export default function ContactPage() {
                         <p className="text-sm font-medium text-gray-700 mb-1">
                           Location
                         </p>
-                        <p className="text-gray-900">
-                          Available for sessions worldwide
-                        </p>
+                        <p className="text-gray-900">Palestine, Ramallah</p>
                       </div>
                     </div>
                   </div>
@@ -242,7 +240,7 @@ export default function ContactPage() {
                     </h3>
                     <div className="flex space-x-6">
                       <Link
-                        href="#"
+                        href="https://www.instagram.com/by_3bd/"
                         className="text-black/70 hover:text-black transition-colors cursor-pointer"
                         aria-label="Instagram"
                       >
@@ -255,7 +253,7 @@ export default function ContactPage() {
                         </svg>
                       </Link>
                       <Link
-                        href="#"
+                        href="https://www.facebook.com/Abdulla.murra"
                         className="text-black/70 hover:text-black transition-colors cursor-pointer"
                         aria-label="Facebook"
                       >

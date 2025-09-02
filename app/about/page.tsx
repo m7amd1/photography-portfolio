@@ -59,8 +59,8 @@ export default function AboutPage() {
             >
               <div className="relative w-full aspect-[4/5] rounded-lg overflow-hidden">
                 <Image
-                  src="/hero.png"
-                  alt="yourname - Professional Photographer"
+                  src="/hero.JPG"
+                  alt="Abdallah Abumurra - Professional Photographer"
                   fill
                   className="object-cover"
                   sizes="(max-width: 1024px) 100vw, 50vw"
@@ -76,46 +76,39 @@ export default function AboutPage() {
                   : "opacity-0 translate-y-8"
               }`}
             >
-              <div className="space-y-8 pt-8">
+              <div className="space-y-8 pt-2">
                 <div className="space-y-6 text-lg text-gray-700 leading-relaxed font-light">
                   <p>
-                    Photography found me in 2014, and since then, it has been my
-                    way of understanding the world. What began as curiosity
-                    became passion, and passion became purpose.
+                    I am Abdallah Abumurra, a Palestinian professional
+                    photographer with a great passion for photography and
+                    videography.
                   </p>
                   <p>
-                    I believe every photograph should tell a story worth
-                    remembering. Whether it's the quiet intimacy of a portrait
-                    or the grand celebration of a wedding, I seek the authentic
-                    moments that reveal who we truly are.
+                    I specialize in capturing projects, restaurants, and
+                    products, focusing on highlighting fine details and
+                    revealing the true beauty in every shot.
                   </p>
                   <p>
-                    My approach is simple: listen first, observe deeply, and
-                    capture honestly. The best photographs happen when people
-                    forget the camera exists.
+                    Beyond just taking photos, I aim to create visual stories
+                    that reflect the identity and essence of each subject.
+                    Whether it’s the inviting atmosphere of a restaurant, the
+                    elegance of a product, or the unique character of a project,
+                    my mission is to highlight what makes it truly special.
+                    Every frame I capture is designed not only to look visually
+                    appealing but also to communicate a clear message and evoke
+                    emotion.
+                  </p>
+                  <p>
+                    With years of hands-on experience, I bring together
+                    technical expertise and artistic vision to deliver
+                    high-quality photography and videography. My work is
+                    tailored to meet the needs of businesses and individuals,
+                    helping them present their ideas and brands in the best
+                    light. From concept planning and creative direction to
+                    precise editing and final delivery, I ensure a professional
+                    process that results in impactful, polished visuals.
                   </p>
                 </div>
-                {/* 
-                <div className="pt-8">
-                  <div className="grid grid-cols-2 gap-8 text-center">
-                    <div>
-                      <p className="text-3xl font-serif font-light text-gray-900">
-                        500+
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Stories Captured
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-3xl font-serif font-light text-gray-900">
-                        10+
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Years Experience
-                      </p>
-                    </div>
-                  </div>
-                </div> */}
               </div>
             </div>
           </div>
