@@ -75,27 +75,10 @@ export default function ContactPage() {
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
-
-      if (response.ok) {
-        toast.success(
-          "Thank you for your message! I'll get back to you within 24 hours."
-        );
-        form.reset();
-      } else {
-        toast.error("Failed to send message. Please try again later.");
-      }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      toast.error("An unexpected error occurred. Please try again later.");
-    }
+    const phoneNumber = "972599573632";
+    const message = `Name: ${values.name}\nEmail: ${values.email}\nSession Type: ${values.sessionType}\nMessage: ${values.message}`;
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank");
   }
 
   function onError(errors: any) {
@@ -363,7 +346,7 @@ export default function ContactPage() {
                                       Wedding Photography
                                     </SelectItem>
                                     <SelectItem value="event">
-                                      Event Photography
+                                      Jewellery Photography
                                     </SelectItem>
                                     <SelectItem value="family">
                                       Family Session
