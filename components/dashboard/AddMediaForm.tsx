@@ -9,6 +9,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Category } from "@/lib/photo-store";
+import { UploadProgressBar } from "@/components/ui/upload-progress";
+import { UploadProgress } from "@/hooks/use-upload-progress";
 
 interface AddMediaFormProps {
   showAddForm: boolean;
@@ -16,6 +18,8 @@ interface AddMediaFormProps {
   newPhoto: { category_id: string; files: File[] };
   newVideo: { category_id: string; files: File[] };
   categories: Category[];
+  photoUploadState?: UploadProgress;
+  videoUploadState?: UploadProgress;
   onDrag: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent) => void;
   onFileSelect: (files: File[]) => void;
@@ -35,6 +39,7 @@ interface AddMediaFormProps {
     }
   ) => void;
   onCloseForm: () => void;
+  onCancelUpload?: () => void;
 }
 
 export function AddMediaForm({
@@ -43,6 +48,8 @@ export function AddMediaForm({
   newPhoto,
   newVideo,
   categories,
+  photoUploadState,
+  videoUploadState,
   onDrag,
   onDrop,
   onFileSelect,
@@ -52,13 +59,32 @@ export function AddMediaForm({
   onSetNewPhoto,
   onSetNewVideo,
   onCloseForm,
+  onCancelUpload,
 }: AddMediaFormProps) {
   if (!showAddForm) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-      {/* Add Photo Form */}
-      <Card>
+    <div className="space-y-6">
+      {/* Upload Progress Bars */}
+      {photoUploadState && photoUploadState.items.length > 0 && (
+        <UploadProgressBar
+          uploadState={photoUploadState}
+          onCancel={onCancelUpload}
+          className="mb-4"
+        />
+      )}
+      
+      {videoUploadState && videoUploadState.items.length > 0 && (
+        <UploadProgressBar
+          uploadState={videoUploadState}
+          onCancel={onCancelUpload}
+          className="mb-4"
+        />
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Add Photo Form */}
+        <Card>
         <CardHeader>
           <CardTitle>Add New Photo</CardTitle>
           <CardDescription>Upload a new photo to your gallery</CardDescription>
@@ -362,7 +388,8 @@ export function AddMediaForm({
             </div>
           </form>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

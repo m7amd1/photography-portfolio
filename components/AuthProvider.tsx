@@ -30,20 +30,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let isMounted = true;
 
     async function init() {
-      const { data } = await supabase.auth.getSession();
-      if (!isMounted) return;
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
       try {
-        setIsAdmin(await fetchIsAdmin());
-      } catch (error) {
-        console.error(
-          "Error fetching admin status in AuthProvider init:",
-          error
-        );
-        setIsAdmin(false); // Default to not admin on error
-      } finally {
+        const { data } = await supabase.auth.getSession();
+        console.log("Initial session data:", data);
+        if (!isMounted) return;
+        
+        setSession(data.session);
+        setUser(data.session?.user ?? null);
         setLoading(false);
+        
+        // Fetch admin status in background without blocking
+        if (data.session?.user) {
+          fetchIsAdmin()
+            .then(adminStatus => {
+              if (isMounted) {
+                setIsAdmin(adminStatus);
+              }
+            })
+            .catch(error => {
+              console.error("Error fetching admin status:", error);
+              if (isMounted) {
+                setIsAdmin(false);
+              }
+            });
+        } else {
+          setIsAdmin(false);
+        }
+      } catch (error) {
+        console.error("Error in AuthProvider init:", error);
+        if (isMounted) {
+          setLoading(false);
+          setIsAdmin(false);
+        }
       }
     }
 
@@ -51,20 +69,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
       if (!isMounted) return;
+      
       setSession(newSession);
       setUser(newSession?.user ?? null);
-      try {
-        setIsAdmin(await fetchIsAdmin());
-      } catch (error) {
-        console.error(
-          "Error fetching admin status on auth state change:",
-          error
-        );
-        setIsAdmin(false); // Default to not admin on error
-      } finally {
-        setLoading(false);
+      setLoading(false);
+      
+      // Fetch admin status in background for authenticated users
+      if (newSession?.user) {
+        fetchIsAdmin()
+          .then(adminStatus => {
+            if (isMounted) {
+              setIsAdmin(adminStatus);
+            }
+          })
+          .catch(error => {
+            console.error("Error fetching admin status on auth state change:", error);
+            if (isMounted) {
+              setIsAdmin(false);
+            }
+          });
+      } else {
+        setIsAdmin(false);
       }
     });
 

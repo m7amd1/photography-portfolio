@@ -12,6 +12,11 @@ import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { ImageGrid } from "@/components/dashboard/ImageGrid";
 import { VideoGrid } from "@/components/dashboard/VideoGrid";
 import { DeleteConfirmationToast } from "@/components/dashboard/DeleteConfirmationToast";
+import { useUploadProgress } from "@/hooks/use-upload-progress";
+import { UploadProgressBar } from "@/components/ui/upload-progress";
+import { UploadService } from "@/lib/upload-service";
+import { useDeleteProgress } from "@/hooks/use-delete-progress";
+import { DeleteProgressBar } from "@/components/ui/delete-progress";
 
 interface Video {
   id: string;
@@ -28,6 +33,14 @@ export default function DashboardPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const { loading, user, isAdmin } = useAuth();
+  
+  // Upload progress tracking
+  const photoUpload = useUploadProgress();
+  const videoUpload = useUploadProgress();
+  const uploadService = UploadService.getInstance();
+  
+  // Delete progress tracking
+  const deleteProgress = useDeleteProgress();
   const [newPhoto, setNewPhoto] = useState<{
     category_id: string;
     files: File[];
@@ -46,10 +59,14 @@ export default function DashboardPage() {
     show: boolean;
     photoId: string;
     isDeletingVideo: boolean;
+    isBulkDelete: boolean;
+    itemIds: string[];
   }>({
     show: false,
     photoId: "",
     isDeletingVideo: false,
+    isBulkDelete: false,
+    itemIds: [],
   });
   const [dragActive, setDragActive] = useState(false);
 
@@ -212,23 +229,54 @@ export default function DashboardPage() {
       return;
     }
 
-    setDashboardLoading(true);
+    // Initialize upload progress tracking
+    const itemIds = photoUpload.initializeUpload(newPhoto.files);
+
     try {
-      for (const file of newPhoto.files) {
-        await photoStore.addPhoto(newPhoto.category_id, file);
-      }
+      // Upload each file with progress tracking
+      const uploadPromises = newPhoto.files.map(async (file, index) => {
+        const itemId = itemIds[index];
+        
+        try {
+          await uploadService.uploadPhotoWithSimulatedProgress(
+            newPhoto.category_id,
+            file,
+            {
+              onProgress: (progress) => {
+                photoUpload.updateItemProgress(itemId, progress);
+              },
+              onComplete: () => {
+                photoUpload.markItemCompleted(itemId);
+              },
+              onError: (error) => {
+                photoUpload.markItemError(itemId, error.message);
+              },
+            }
+          );
+        } catch (error) {
+          photoUpload.markItemError(itemId, (error as Error).message);
+          throw error;
+        }
+      });
+
+      await Promise.all(uploadPromises);
+
+      // Reset form and refresh data
       setNewPhoto({
         category_id: categories[0]?.id || "",
         files: [],
-      }); // Reset form
+      });
       setShowAddForm(false);
       toast.success(`${newPhoto.files.length} photo(s) added successfully!`);
       await photoStore.fetchPhotos();
+
+      // Reset upload progress after a delay
+      setTimeout(() => {
+        photoUpload.resetUpload();
+      }, 2000);
     } catch (error) {
       console.error("Error adding photo:", error);
-      toast.error("Failed to add photo. Please try again.");
-    } finally {
-      setDashboardLoading(false);
+      toast.error("Failed to add some photos. Please try again.");
     }
   };
 
@@ -239,33 +287,39 @@ export default function DashboardPage() {
       return;
     }
 
-    const category = categories.find((c) => c.id === newVideo.category_id);
-    if (!category) {
-      toast.error("Selected category not found.");
-      return;
-    }
-    const categoryName = category.name.toLowerCase().replace(/\s+/g, "-");
-
+    // Initialize upload progress tracking
+    const uploadIds = videoUpload.initializeUpload(newVideo.files);
+    
     try {
-      for (const file of newVideo.files) {
-        const fileExtension = file.name.split(".").pop();
-        const timestamp = Date.now();
-        const storagePath = `${categoryName}/${timestamp}.${fileExtension}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from("videos")
-          .upload(storagePath, file, {
-            cacheControl: "3600",
-            upsert: false,
-          });
-
-        if (uploadError) {
-          console.error("Error uploading video:", uploadError);
-          toast.error(`Failed to upload video ${file.name}. Please try again.`);
-          continue;
+      // Upload files with progress tracking
+      const uploadPromises = newVideo.files.map(async (file, index) => {
+        const uploadId = uploadIds[index];
+        
+        try {
+          await uploadService.uploadVideoWithSimulatedProgress(
+            newVideo.category_id,
+            file,
+            {
+              onProgress: (progress) => {
+                videoUpload.updateItemProgress(uploadId, progress);
+              },
+              onComplete: () => {
+                videoUpload.markItemCompleted(uploadId);
+              },
+              onError: (error) => {
+                videoUpload.markItemError(uploadId, error.message);
+              },
+            }
+          );
+        } catch (error) {
+          videoUpload.markItemError(uploadId, (error as Error).message);
+          throw error;
         }
-      }
+      });
 
+      await Promise.all(uploadPromises);
+      
+      // Reset form and refresh data
       setNewVideo({
         category_id: categories[0]?.id || "",
         files: [],
@@ -273,22 +327,158 @@ export default function DashboardPage() {
       setShowAddForm(false);
       toast.success(`${newVideo.files.length} video(s) added successfully!`);
       await fetchVideos();
+      
+      // Reset upload progress after a delay
+      setTimeout(() => {
+        videoUpload.resetUpload();
+      }, 2000);
     } catch (error) {
       console.error("Error adding video:", error);
-      toast.error("Failed to add video. Please try again.");
+      toast.error("Failed to add some videos. Please check the progress and try again.");
     }
   };
 
   const handleDeletePhoto = (id: string) => {
-    setConfirmToast({ show: true, photoId: id, isDeletingVideo: false });
+    setConfirmToast({ 
+      show: true, 
+      photoId: id, 
+      isDeletingVideo: false, 
+      isBulkDelete: false, 
+      itemIds: [] 
+    });
   };
 
   const handleDeleteVideo = (name: string) => {
-    setConfirmToast({ show: true, photoId: name, isDeletingVideo: true });
+    setConfirmToast({ 
+      show: true, 
+      photoId: name, 
+      isDeletingVideo: true, 
+      isBulkDelete: false, 
+      itemIds: [] 
+    });
+  };
+
+  const handleBulkDeletePhotos = (ids: string[]) => {
+    setConfirmToast({
+      show: true,
+      photoId: "",
+      isDeletingVideo: false,
+      isBulkDelete: true,
+      itemIds: ids,
+    });
+  };
+
+  const handleBulkDeleteVideos = (names: string[]) => {
+    setConfirmToast({
+      show: true,
+      photoId: "",
+      isDeletingVideo: true,
+      isBulkDelete: true,
+      itemIds: names,
+    });
   };
 
   const handleConfirmDelete = async () => {
-    setDashboardLoading(true);
+  if (confirmToast.isBulkDelete) {
+    // Initialize delete progress for bulk operations
+    const deleteItems = confirmToast.itemIds.map((id, index) => ({
+      id,
+      name: confirmToast.isDeletingVideo 
+        ? videos.find(v => v.name === id)?.name || `Video ${index + 1}`
+        : photos.find(p => p.id === id)?.storage_path || `Photo ${index + 1}`,
+      type: confirmToast.isDeletingVideo ? 'video' as const : 'photo' as const,
+    }));
+    
+    deleteProgress.initializeDelete(deleteItems);
+
+    if (confirmToast.isDeletingVideo) {
+      // Bulk delete videos with progress
+      try {
+        for (const videoName of confirmToast.itemIds) {
+          deleteProgress.markItemDeleting(videoName);
+          
+          try {
+            const { error } = await supabase.storage
+              .from("videos")
+              .remove([videoName]);
+
+            if (error) {
+              deleteProgress.markItemError(videoName, error.message);
+            } else {
+              deleteProgress.markItemCompleted(videoName);
+            }
+          } catch (error) {
+            deleteProgress.markItemError(videoName, (error as Error).message);
+          }
+        }
+
+        await fetchVideos();
+        const completedCount = deleteProgress.deleteState.completedCount;
+        const errorCount = deleteProgress.deleteState.errorCount;
+        
+        if (completedCount > 0) {
+          toast.success(`${completedCount} video(s) deleted successfully!`);
+        }
+        if (errorCount > 0) {
+          toast.error(`Failed to delete ${errorCount} video(s)`);
+        }
+      } catch (error) {
+        console.error("Failed to delete videos:", error);
+        toast.error("Failed to delete videos. Please try again.");
+      }
+    } else {
+      // Bulk delete photos with progress
+      try {
+        for (const photoId of confirmToast.itemIds) {
+          deleteProgress.markItemDeleting(photoId);
+          
+          try {
+            const success = await photoStore.deletePhoto(photoId);
+            if (success) {
+              deleteProgress.markItemCompleted(photoId);
+            } else {
+              deleteProgress.markItemError(photoId, "Failed to delete from database");
+            }
+          } catch (error) {
+            deleteProgress.markItemError(photoId, (error as Error).message);
+          }
+        }
+        
+        await photoStore.fetchPhotos();
+        const completedCount = deleteProgress.deleteState.completedCount;
+        const errorCount = deleteProgress.deleteState.errorCount;
+        
+        if (completedCount > 0) {
+          toast.success(`${completedCount} photo(s) deleted successfully!`);
+        }
+        if (errorCount > 0) {
+          toast.error(`Failed to delete ${errorCount} photo(s)`);
+        }
+      } catch (error) {
+        console.error("Error deleting photos:", error);
+        toast.error("Failed to delete photos. Please try again.");
+      }
+    }
+    
+    // Reset delete progress after a delay
+    setTimeout(() => {
+      deleteProgress.resetDelete();
+    }, 3000);
+  } else {
+    // Handle single deletion with progress
+    const itemName = confirmToast.isDeletingVideo 
+      ? videos.find(v => v.name === confirmToast.photoId)?.name || confirmToast.photoId
+      : photos.find(p => p.id === confirmToast.photoId)?.storage_path || confirmToast.photoId;
+      
+    const deleteItems = [{
+      id: confirmToast.photoId,
+      name: itemName,
+      type: confirmToast.isDeletingVideo ? 'video' as const : 'photo' as const,
+    }];
+    
+    deleteProgress.initializeDelete(deleteItems);
+    deleteProgress.markItemDeleting(confirmToast.photoId);
+
     if (confirmToast.isDeletingVideo) {
       try {
         const { error } = await supabase.storage
@@ -296,56 +486,63 @@ export default function DashboardPage() {
           .remove([confirmToast.photoId]);
 
         if (error) {
-          console.error("Error deleting video from storage:", error);
-          toast.error("Failed to delete video.", {
-            description: `There was an error deleting the video from storage: ${error.message}`,
-          });
-          return;
+          deleteProgress.markItemError(confirmToast.photoId, error.message);
+          toast.error("Failed to delete video.");
+        } else {
+          deleteProgress.markItemCompleted(confirmToast.photoId);
+          await fetchVideos();
+          toast.success("Video deleted successfully!");
         }
-
-        // Re-fetch videos to ensure state is in sync with Supabase
-        await fetchVideos();
-
-        toast.success("Video deleted successfully!", {
-          description: "The video has been removed from your gallery.",
-        });
       } catch (error) {
-        console.error("Failed to delete video:", error);
-        toast.error("Failed to delete video. Please try again.", {
-          description: "An unexpected error occurred during video deletion.",
-        });
-      } finally {
-        setConfirmToast({ show: false, photoId: "", isDeletingVideo: false });
-        setDashboardLoading(false);
+        deleteProgress.markItemError(confirmToast.photoId, (error as Error).message);
+        toast.error("Failed to delete video. Please try again.");
       }
     } else {
       try {
         const success = await photoStore.deletePhoto(confirmToast.photoId);
         if (success) {
-          toast.success(`Photo has been deleted`, {
-            description: "The photo has been removed from your gallery.",
-          });
+          deleteProgress.markItemCompleted(confirmToast.photoId);
+          toast.success("Photo deleted successfully!");
           await photoStore.fetchPhotos();
         } else {
-          toast.error("Failed to delete photo", {
-            description:
-              "There was an error deleting the photo from the database.",
-          });
+          deleteProgress.markItemError(confirmToast.photoId, "Failed to delete from database");
+          toast.error("Failed to delete photo");
         }
       } catch (error) {
-        console.error("Error deleting photo:", error);
-        toast.error("Failed to delete photo. Please try again.", {
-          description: "An unexpected error occurred during photo deletion.",
-        });
-      } finally {
-        setConfirmToast({ show: false, photoId: "", isDeletingVideo: false });
-        setDashboardLoading(false);
+        deleteProgress.markItemError(confirmToast.photoId, (error as Error).message);
+        toast.error("Failed to delete photo. Please try again.");
       }
     }
-  };
+    
+    // Reset delete progress after a delay
+    setTimeout(() => {
+      deleteProgress.resetDelete();
+    }, 2000);
+  }
+  
+  setConfirmToast({ 
+    show: false, 
+    photoId: "", 
+    isDeletingVideo: false, 
+    isBulkDelete: false, 
+    itemIds: [] 
+  });
+};
 
   const handleCancelDelete = () => {
-    setConfirmToast({ show: false, photoId: "", isDeletingVideo: false });
+    setConfirmToast({ 
+      show: false, 
+      photoId: "", 
+      isDeletingVideo: false, 
+      isBulkDelete: false, 
+      itemIds: [] 
+    });
+  };
+
+  const handleCancelUpload = () => {
+    photoUpload.resetUpload();
+    videoUpload.resetUpload();
+    toast.info("Upload cancelled");
   };
 
   const handleLogout = async () => {
@@ -378,6 +575,8 @@ export default function DashboardPage() {
             newPhoto={newPhoto}
             newVideo={newVideo}
             categories={categories}
+            photoUploadState={photoUpload.uploadState}
+            videoUploadState={videoUpload.uploadState}
             onDrag={handleDrag}
             onDrop={handleDrop}
             onFileSelect={handleFileSelect}
@@ -387,6 +586,7 @@ export default function DashboardPage() {
             onSetNewPhoto={setNewPhoto}
             onSetNewVideo={setNewVideo}
             onCloseForm={() => setShowAddForm(false)}
+            onCancelUpload={handleCancelUpload}
           />
 
           <DashboardStats
@@ -395,16 +595,25 @@ export default function DashboardPage() {
             categories={categories}
           />
 
+          {/* Delete Progress Bar */}
+          {deleteProgress.deleteState.items.length > 0 && (
+            <div className="mb-6">
+              <DeleteProgressBar deleteState={deleteProgress.deleteState} />
+            </div>
+          )}
+
           <ImageGrid
             key={`image-grid-${photos.length}`}
             photos={photos}
             onDeletePhoto={handleDeletePhoto}
+            onBulkDeletePhotos={handleBulkDeletePhotos}
           />
 
           <VideoGrid
             key={`video-grid-${videos.length}`}
             videos={videos}
             onDeleteVideo={handleDeleteVideo}
+            onBulkDeleteVideos={handleBulkDeleteVideos}
           />
         </div>
       </div>
@@ -413,6 +622,9 @@ export default function DashboardPage() {
         show={confirmToast.show}
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
+        isBulkDelete={confirmToast.isBulkDelete}
+        itemCount={confirmToast.itemIds.length}
+        itemType={confirmToast.isDeletingVideo ? "video" : "photo"}
       />
     </>
   );
