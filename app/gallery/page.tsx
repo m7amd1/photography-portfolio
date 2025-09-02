@@ -16,6 +16,7 @@ export default function GalleryPage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(true);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [hasFetchedData, setHasFetchedData] = useState(false);
 
   const photoStore = PhotoStore.getInstance(supabase);
 
@@ -28,6 +29,8 @@ export default function GalleryPage() {
   // Load photos and categories on component mount
   useEffect(() => {
     const initializeData = async () => {
+      if (hasFetchedData) return; // Prevent duplicate fetching
+
       try {
         setIsLoadingCategories(true);
         setIsLoadingPhotos(true);
@@ -40,10 +43,12 @@ export default function GalleryPage() {
         await photoStore.fetchPhotos();
         setPhotos(photoStore.getPhotos());
         setIsLoadingPhotos(false);
+        setHasFetchedData(true); // Mark data as fetched
       } catch (error) {
         console.error("Error initializing gallery data:", error);
         setIsLoadingCategories(false); // Ensure loading is false even on error
         setIsLoadingPhotos(false); // Ensure loading is false even on error
+        setHasFetchedData(true); // Mark data as fetched even on error to prevent retries
       }
     };
 

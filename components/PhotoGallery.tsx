@@ -53,16 +53,7 @@ export default function PhotoGallery({ photoStore }: PhotoGalleryProps) {
 
   useEffect(() => {
     fetchPhotos();
-
-    const unsubscribe = photoStore.subscribe(() => {
-      setIsLoading(true);
-      fetchPhotos();
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [photoStore, fetchPhotos]);
+  }, [fetchPhotos]);
 
   const openLightbox = (index: number) => {
     setCurrentPhotoIndex(index);

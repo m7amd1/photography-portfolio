@@ -54,7 +54,9 @@ export default function VideoGallery() {
               name: `${folder.name}/${file.name}`,
               publicUrl: publicUrlData.publicUrl,
               created_at: file.created_at,
-              category_name: folder.name.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+              category_name: folder.name
+                .replace(/-/g, " ")
+                .replace(/\b\w/g, (l) => l.toUpperCase()),
             };
           });
         });
@@ -197,7 +199,9 @@ export default function VideoGallery() {
             </button>
 
             {categories.map((category) => {
-              const videoCount = videos.filter(v => v.category_name === category.name).length;
+              const videoCount = videos.filter(
+                (v) => v.category_name === category.name
+              ).length;
               return (
                 <button
                   key={category.id}
