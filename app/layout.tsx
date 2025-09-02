@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Cairo } from "next/font/google";
-import { Navigation } from "@/components/navigation";
+import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/footer";
 import { AuthProvider } from "@/components/AuthProvider";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "sonner";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -39,12 +40,14 @@ export default function RootLayout({
         className="font-sans antialiased min-h-screen flex flex-col"
         cz-shortcut-listen="true"
       >
-        <AuthProvider>
-          <Navigation />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <Toaster position="bottom-right" />
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <Navigation />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <Toaster position="bottom-right" />
+          </AuthProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

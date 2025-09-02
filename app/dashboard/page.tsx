@@ -17,6 +17,7 @@ import { UploadProgressBar } from "@/components/ui/upload-progress";
 import { UploadService } from "@/lib/upload-service";
 import { useDeleteProgress } from "@/hooks/use-delete-progress";
 import { DeleteProgressBar } from "@/components/ui/delete-progress";
+import { PageLoadingFallback } from "@/components/LoadingFallback";
 
 interface Video {
   id: string;
@@ -551,11 +552,7 @@ export default function DashboardPage() {
   };
 
   if (loading || dashboardLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
+    return <PageLoadingFallback />;
   }
 
   return (
