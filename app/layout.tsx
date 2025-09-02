@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Cairo } from "next/font/google";
-import { Navigation } from "@/components/Navigation";
+import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { AuthProvider } from "@/components/AuthProvider";
 import { Toaster } from "sonner";
