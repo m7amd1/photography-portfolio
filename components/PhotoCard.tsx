@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { cn } from "@/lib/utils";
 import { Photo, PhotoStore } from "@/lib/photo-store";
+import { supabase } from "@/lib/supabaseClient";
 
 interface PhotoCardProps {
   photo: Photo;
@@ -21,6 +22,8 @@ export default function PhotoCard({
   const [ref, isIntersecting] = useIntersectionObserver({
     threshold: 0.1,
   });
+
+  photoStore = PhotoStore.getInstance(supabase);
 
   return (
     <div

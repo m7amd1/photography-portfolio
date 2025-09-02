@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { PhotoStore, Photo, Category } from "@/lib/photo-store";
-import { supabase } from "../../lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/components/AuthProvider";
 import { toast } from "sonner";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -35,7 +35,11 @@ export default function DashboardPage() {
     category_id: "",
     files: [],
   });
-  const [newVideo, setNewVideo] = useState<{ files: File[] }>({
+  const [newVideo, setNewVideo] = useState<{
+    category_id: string;
+    files: File[];
+  }>({
+    category_id: "",
     files: [],
   });
   const [confirmToast, setConfirmToast] = useState<{
@@ -49,34 +53,47 @@ export default function DashboardPage() {
   });
   const [dragActive, setDragActive] = useState(false);
 
-  const photoStore = PhotoStore.getInstance();
+  const photoStore = PhotoStore.getInstance(supabase);
 
   const fetchVideos = useCallback(async () => {
     try {
-      const { data, error } = await supabase.storage
+      const { data: folders, error: folderError } = await supabase.storage
         .from("videos")
-        .list("public", {
-          offset: 0,
-          sortBy: { column: "name", order: "asc" },
+        .list("", {
+          search: "",
         });
 
-      if (error) {
-        console.error("Error listing videos:", error);
+      if (folderError) {
+        console.error("Error listing folders:", folderError);
         return;
       }
 
-      const fetchedVideos = data.map((file) => {
-        const { data: publicUrlData } = supabase.storage
-          .from("videos")
-          .getPublicUrl(`public/${file.name}`);
-        return {
-          id: file.id,
-          name: file.name,
-          publicUrl: publicUrlData.publicUrl,
-          created_at: file.created_at,
-        };
-      });
-      setVideos(fetchedVideos);
+      const videoPromises = folders
+        .filter((folder) => !folder.name.startsWith(".")) // Filter out system files like .emptyFolderPlaceholder
+        .map(async (folder) => {
+          const { data, error } = await supabase.storage
+            .from("videos")
+            .list(folder.name);
+          if (error) {
+            console.error(`Error listing videos in ${folder.name}:`, error);
+            return [];
+          }
+          return data.map((file) => {
+            const { data: publicUrlData } = supabase.storage
+              .from("videos")
+              .getPublicUrl(`${folder.name}/${file.name}`);
+            return {
+              id: file.id,
+              name: `${folder.name}/${file.name}`,
+              publicUrl: publicUrlData.publicUrl,
+              created_at: file.created_at,
+            };
+          });
+        });
+
+      const videosByFolder = await Promise.all(videoPromises);
+      const allVideos = videosByFolder.flat();
+      setVideos(allVideos);
     } catch (error) {
       console.error("Failed to fetch videos:", error);
     }
@@ -113,11 +130,19 @@ export default function DashboardPage() {
       });
       const unsubscribeCategories = photoStore.subscribeToCategories(() => {
         setCategories(photoStore.getCategories());
-        if (photoStore.getCategories().length > 0 && !newPhoto.category_id) {
-          setNewPhoto((prev) => ({
-            ...prev,
-            category_id: photoStore.getCategories()[0].id,
-          }));
+        if (photoStore.getCategories().length > 0) {
+          if (!newPhoto.category_id) {
+            setNewPhoto((prev) => ({
+              ...prev,
+              category_id: photoStore.getCategories()[0].id,
+            }));
+          }
+          if (!newVideo.category_id) {
+            setNewVideo((prev) => ({
+              ...prev,
+              category_id: photoStore.getCategories()[0].id,
+            }));
+          }
         }
       });
 
@@ -187,6 +212,7 @@ export default function DashboardPage() {
       return;
     }
 
+    setDashboardLoading(true);
     try {
       for (const file of newPhoto.files) {
         await photoStore.addPhoto(newPhoto.category_id, file);
@@ -197,35 +223,36 @@ export default function DashboardPage() {
       }); // Reset form
       setShowAddForm(false);
       toast.success(`${newPhoto.files.length} photo(s) added successfully!`);
+      await photoStore.fetchPhotos();
     } catch (error) {
       console.error("Error adding photo:", error);
       toast.error("Failed to add photo. Please try again.");
+    } finally {
+      setDashboardLoading(false);
     }
   };
 
   const handleAddVideo = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("handleAddVideo called");
-    if (newVideo.files.length === 0) {
-      toast.error("Please select at least one video file");
-      console.log("No video file selected.");
+    if (!newVideo.category_id || newVideo.files.length === 0) {
+      toast.error("Please select a category and at least one video file");
       return;
     }
+
+    const category = categories.find((c) => c.id === newVideo.category_id);
+    if (!category) {
+      toast.error("Selected category not found.");
+      return;
+    }
+    const categoryName = category.name.toLowerCase().replace(/\s+/g, "-");
 
     try {
       for (const file of newVideo.files) {
         const fileExtension = file.name.split(".").pop();
         const timestamp = Date.now();
-        const storagePath = `public/${timestamp}.${fileExtension}`;
+        const storagePath = `${categoryName}/${timestamp}.${fileExtension}`;
 
-        console.log(
-          "Attempting to upload video:",
-          file.name,
-          "to path:",
-          storagePath
-        );
-
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from("videos")
           .upload(storagePath, file, {
             cacheControl: "3600",
@@ -235,19 +262,16 @@ export default function DashboardPage() {
         if (uploadError) {
           console.error("Error uploading video:", uploadError);
           toast.error(`Failed to upload video ${file.name}. Please try again.`);
-          // Continue to next file even if one fails
           continue;
         }
-        console.log(`Video ${file.name} uploaded successfully:`, uploadData);
       }
 
       setNewVideo({
+        category_id: categories[0]?.id || "",
         files: [],
       });
       setShowAddForm(false);
       toast.success(`${newVideo.files.length} video(s) added successfully!`);
-
-      // Re-fetch videos after successful upload
       await fetchVideos();
     } catch (error) {
       console.error("Error adding video:", error);
@@ -264,13 +288,12 @@ export default function DashboardPage() {
   };
 
   const handleConfirmDelete = async () => {
+    setDashboardLoading(true);
     if (confirmToast.isDeletingVideo) {
       try {
-        const videoPath = `public/${confirmToast.photoId}`;
-
         const { error } = await supabase.storage
           .from("videos")
-          .remove([videoPath]);
+          .remove([confirmToast.photoId]);
 
         if (error) {
           console.error("Error deleting video from storage:", error);
@@ -293,6 +316,7 @@ export default function DashboardPage() {
         });
       } finally {
         setConfirmToast({ show: false, photoId: "", isDeletingVideo: false });
+        setDashboardLoading(false);
       }
     } else {
       try {
@@ -301,6 +325,7 @@ export default function DashboardPage() {
           toast.success(`Photo has been deleted`, {
             description: "The photo has been removed from your gallery.",
           });
+          await photoStore.fetchPhotos();
         } else {
           toast.error("Failed to delete photo", {
             description:
@@ -314,6 +339,7 @@ export default function DashboardPage() {
         });
       } finally {
         setConfirmToast({ show: false, photoId: "", isDeletingVideo: false });
+        setDashboardLoading(false);
       }
     }
   };
@@ -368,7 +394,7 @@ export default function DashboardPage() {
             videos={videos}
             categories={categories}
           />
-  
+
           <ImageGrid
             key={`image-grid-${photos.length}`}
             photos={photos}

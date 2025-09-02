@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { PhotoStore } from "@/lib/photo-store";
+import { supabase } from "@/lib/supabaseClient";
 import HeroSection from "@/components/HeroSection";
 import QuoteSection from "@/components/QuoteSection";
 import PhotoGallery from "@/components/PhotoGallery";
@@ -11,7 +12,7 @@ export default function HomePage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  const photoStore = PhotoStore.getInstance();
+  const photoStore = PhotoStore.getInstance(supabase);
 
   useEffect(() => {
     setIsLoaded(true);

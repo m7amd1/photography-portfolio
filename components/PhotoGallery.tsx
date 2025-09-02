@@ -14,6 +14,7 @@ export default function PhotoGallery({ photoStore }: PhotoGalleryProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [gridImages, setGridImages] = useState<Photo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const filteredPhotos = gridImages; // On home page, all displayed photos are "filtered" to be the top 20
 
@@ -35,8 +36,9 @@ export default function PhotoGallery({ photoStore }: PhotoGalleryProps) {
     return shuffled.slice(0, count);
   };
 
-  useEffect(() => {
-    const initializeGalleryData = async () => {
+  const fetchPhotos = useCallback(async () => {
+    setIsLoading(true);
+    try {
       // Ensure categories are fetched first for photo category names
       await photoStore.fetchCategories();
       // Then fetch photos
@@ -44,20 +46,23 @@ export default function PhotoGallery({ photoStore }: PhotoGalleryProps) {
       const allPhotos = photoStore.getPhotos();
       const randomPhotos = getRandomPhotos(allPhotos, 20);
       setGridImages(randomPhotos);
-    };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [photoStore]);
 
-    initializeGalleryData();
+  useEffect(() => {
+    fetchPhotos();
 
     const unsubscribe = photoStore.subscribe(() => {
-      const allPhotos = photoStore.getPhotos();
-      const randomPhotos = getRandomPhotos(allPhotos, 20);
-      setGridImages(randomPhotos);
+      setIsLoading(true);
+      fetchPhotos();
     });
 
     return () => {
       unsubscribe();
     };
-  }, [photoStore]); // Depend on photoStore
+  }, [photoStore, fetchPhotos]);
 
   const openLightbox = (index: number) => {
     setCurrentPhotoIndex(index);
@@ -105,7 +110,11 @@ export default function PhotoGallery({ photoStore }: PhotoGalleryProps) {
     <>
       <section className="pb-32 bg-white">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 w-full">
-          {gridImages.length > 0 ? (
+          {isLoading ? (
+            <div className="col-span-full text-center text-gray-500 text-xl py-20">
+              Loading photos...
+            </div>
+          ) : gridImages.length > 0 ? (
             gridImages.map((image, index) => (
               <PhotoCard
                 key={image.id}

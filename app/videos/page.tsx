@@ -1,9 +1,5 @@
-const VideosPage = () => {
-  return (
-    <div className="flex items-center justify-center h-[100vh]">
-      <p>Coming soon!</p>
-    </div>
-  );
-}
+import VideoGallery from "@/components/VideoGallery";
 
-export default VideosPage;
+export default function VideosPage() {
+  return <VideoGallery />;
+}

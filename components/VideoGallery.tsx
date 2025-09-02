@@ -1,99 +1,111 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
-import { PhotoStore, Photo, Category } from "@/lib/photo-store";
-import PhotoCard from "@/components/PhotoCard";
+import VideoCard from "@/components/VideoCard";
+import { Category } from "@/lib/photo-store";
 
-export default function GalleryPage() {
+interface Video {
+  id: string;
+  name: string;
+  publicUrl: string;
+  created_at: string;
+  category_name: string;
+}
+
+export default function VideoGallery() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [videos, setVideos] = useState<Video[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [isLoadingPhotos, setIsLoadingPhotos] = useState(true);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const photoStore = PhotoStore.getInstance(supabase);
+  const fetchVideos = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { data: folders, error: folderError } = await supabase.storage
+        .from("videos")
+        .list("", { search: "" });
 
-  // Filter photos based on selected category
-  const filteredPhotos =
-    selectedCategory === "All"
-      ? photos
-      : photos.filter((photo) => photo.category_name === selectedCategory);
-
-  // Load photos and categories on component mount
-  useEffect(() => {
-    const initializeData = async () => {
-      try {
-        setIsLoadingCategories(true);
-        setIsLoadingPhotos(true);
-
-        // Fetch categories first, then photos
-        await photoStore.fetchCategories();
-        setCategories(photoStore.getCategories());
-        setIsLoadingCategories(false);
-
-        await photoStore.fetchPhotos();
-        setPhotos(photoStore.getPhotos());
-        setIsLoadingPhotos(false);
-      } catch (error) {
-        console.error("Error initializing gallery data:", error);
-        setIsLoadingCategories(false); // Ensure loading is false even on error
-        setIsLoadingPhotos(false); // Ensure loading is false even on error
+      if (folderError) {
+        console.error("Error listing folders:", folderError);
+        return;
       }
-    };
 
-    // Initialize data
-    initializeData();
+      const videoPromises = folders
+        .filter((folder) => !folder.name.startsWith("."))
+        .map(async (folder) => {
+          const { data, error } = await supabase.storage
+            .from("videos")
+            .list(folder.name);
+          if (error) {
+            console.error(`Error listing videos in ${folder.name}:`, error);
+            return [];
+          }
+          return data.map((file) => {
+            const { data: publicUrlData } = supabase.storage
+              .from("videos")
+              .getPublicUrl(`${folder.name}/${file.name}`);
+            return {
+              id: file.id,
+              name: `${folder.name}/${file.name}`,
+              publicUrl: publicUrlData.publicUrl,
+              created_at: file.created_at,
+              category_name: folder.name.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+            };
+          });
+        });
 
-    // Set up subscriptions for real-time updates
-    const unsubscribePhotos = photoStore.subscribe(() => {
-      setPhotos(photoStore.getPhotos());
-    });
+      const videosByFolder = await Promise.all(videoPromises);
+      const allVideos = videosByFolder.flat();
+      setVideos(allVideos);
+    } catch (error) {
+      console.error("Failed to fetch videos:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-    const unsubscribeCategories = photoStore.subscribeToCategories(() => {
-      setCategories(photoStore.getCategories());
-    });
+  const fetchCategories = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.from("categories").select("*");
+      if (error) {
+        console.error("Error fetching categories:", error);
+        return;
+      }
+      setCategories(data);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  }, []);
 
-    // Set up scroll listener for scroll-to-top button
+  useEffect(() => {
+    fetchVideos();
+    fetchCategories();
+
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 400);
     };
 
     window.addEventListener("scroll", handleScroll);
-
-    // Trigger loaded animation after a short delay
     const timer = setTimeout(() => setIsLoaded(true), 100);
 
     return () => {
       clearTimeout(timer);
       window.removeEventListener("scroll", handleScroll);
-      unsubscribePhotos();
-      unsubscribeCategories();
     };
-  }, []);
+  }, [fetchVideos, fetchCategories]);
 
-  // Reset current photo index when category changes
-  useEffect(() => {
-    setCurrentPhotoIndex(0);
-    if (lightboxOpen && filteredPhotos.length === 0) {
-      closeLightbox();
-    }
-  }, [selectedCategory, lightboxOpen, filteredPhotos.length]);
-
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
+  const filteredVideos =
+    selectedCategory === "All"
+      ? videos
+      : videos.filter((video) => video.category_name === selectedCategory);
 
   const openLightbox = (index: number) => {
-    setCurrentPhotoIndex(index);
+    setCurrentVideoIndex(index);
     setLightboxOpen(true);
     document.body.style.overflow = "hidden";
   };
@@ -103,21 +115,20 @@ export default function GalleryPage() {
     document.body.style.overflow = "unset";
   };
 
-  const nextPhoto = useCallback(() => {
-    if (filteredPhotos.length > 0) {
-      setCurrentPhotoIndex((prev) => (prev + 1) % filteredPhotos.length);
+  const nextVideo = useCallback(() => {
+    if (filteredVideos.length > 0) {
+      setCurrentVideoIndex((prev) => (prev + 1) % filteredVideos.length);
     }
-  }, [filteredPhotos.length]);
+  }, [filteredVideos.length]);
 
-  const prevPhoto = useCallback(() => {
-    if (filteredPhotos.length > 0) {
-      setCurrentPhotoIndex(
-        (prev) => (prev - 1 + filteredPhotos.length) % filteredPhotos.length
+  const prevVideo = useCallback(() => {
+    if (filteredVideos.length > 0) {
+      setCurrentVideoIndex(
+        (prev) => (prev - 1 + filteredVideos.length) % filteredVideos.length
       );
     }
-  }, [filteredPhotos.length]);
+  }, [filteredVideos.length]);
 
-  // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!lightboxOpen) return;
@@ -127,29 +138,27 @@ export default function GalleryPage() {
           closeLightbox();
           break;
         case "ArrowRight":
-          nextPhoto();
+          nextVideo();
           break;
         case "ArrowLeft":
-          prevPhoto();
+          prevVideo();
           break;
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [lightboxOpen, nextPhoto, prevPhoto]);
+  }, [lightboxOpen, nextVideo, prevVideo]);
 
-  // Get photo count for each category
-  const getPhotosCountForCategory = (categoryName: string) => {
-    return photos.filter((photo) => photo.category_name === categoryName)
-      .length;
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   };
-
-  const isLoading = isLoadingPhotos || isLoadingCategories;
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header Section */}
       <section className="py-32 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <div
@@ -158,10 +167,10 @@ export default function GalleryPage() {
             }`}
           >
             <h1 className="font-serif text-6xl sm:text-7xl lg:text-8xl font-light text-gray-900 mb-8 leading-tight">
-              Gallery
+              Videos
             </h1>
             <p className="text-xl sm:text-2xl text-gray-700 font-light max-w-2xl mx-auto leading-relaxed">
-              A collection of moments that matter
+              A collection of moments in motion
             </p>
           </div>
         </div>
@@ -169,13 +178,11 @@ export default function GalleryPage() {
 
       <div className="px-4 sm:px-6 lg:px-8 pb-24">
         <div className="max-w-7xl mx-auto">
-          {/* Category Filter Buttons */}
           <div
             className={`flex flex-wrap justify-center gap-2 mb-20 transition-all duration-1000 delay-200 ${
               isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
             }`}
           >
-            {/* All Categories Button */}
             <button
               key="All"
               onClick={() => setSelectedCategory("All")}
@@ -186,12 +193,11 @@ export default function GalleryPage() {
                   : "text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300"
               }`}
             >
-              All {!isLoading && `(${photos.length})`}
+              All {!isLoading && `(${videos.length})`}
             </button>
 
-            {/* Individual Category Buttons */}
             {categories.map((category) => {
-              const photoCount = getPhotosCountForCategory(category.name);
+              const videoCount = videos.filter(v => v.category_name === category.name).length;
               return (
                 <button
                   key={category.id}
@@ -203,33 +209,30 @@ export default function GalleryPage() {
                       : "text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  {category.name} {!isLoading && `(${photoCount})`}
+                  {category.name} {!isLoading && `(${videoCount})`}
                 </button>
               );
             })}
           </div>
 
-          {/* Loading State */}
           {isLoading && (
             <div className="flex justify-center items-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
               <span className="ml-3 text-gray-600 text-lg font-light">
-                Loading gallery...
+                Loading videos...
               </span>
             </div>
           )}
 
-          {/* Photo Grid */}
           {!isLoading && (
             <>
-              {filteredPhotos.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {filteredPhotos.map((photo, index) => (
-                    <PhotoCard
-                      key={photo.id}
-                      photo={photo}
+              {filteredVideos.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {filteredVideos.map((video, index) => (
+                    <VideoCard
+                      key={video.id}
+                      video={video}
                       index={index}
-                      photoStore={photoStore}
                       openLightbox={openLightbox}
                     />
                   ))}
@@ -237,20 +240,18 @@ export default function GalleryPage() {
               ) : (
                 <div className="text-center text-gray-500 text-xl py-20">
                   {selectedCategory === "All"
-                    ? "No photos to display"
-                    : `No photos found in "${selectedCategory}" category`}
+                    ? "No videos to display"
+                    : `No videos found in "${selectedCategory}" category`}
                 </div>
               )}
             </>
           )}
 
-          {/* Lightbox Modal */}
           {lightboxOpen &&
-            filteredPhotos.length > 0 &&
-            filteredPhotos[currentPhotoIndex] && (
+            filteredVideos.length > 0 &&
+            filteredVideos[currentVideoIndex] && (
               <div className="fixed inset-0 z-50 lightbox-overlay flex items-center justify-center p-4">
-                <div className="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center">
-                  {/* Close Button */}
+                <div className="relative max-w-3xl max-h-full w-full h-full flex items-center justify-center">
                   <button
                     onClick={closeLightbox}
                     className="absolute top-4 right-4 z-10 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 cursor-pointer"
@@ -271,12 +272,11 @@ export default function GalleryPage() {
                     </svg>
                   </button>
 
-                  {/* Previous Button */}
-                  {filteredPhotos.length > 1 && (
+                  {filteredVideos.length > 1 && (
                     <button
-                      onClick={prevPhoto}
+                      onClick={prevVideo}
                       className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 cursor-pointer"
-                      aria-label="Previous photo"
+                      aria-label="Previous video"
                     >
                       <svg
                         className="w-6 h-6"
@@ -294,12 +294,11 @@ export default function GalleryPage() {
                     </button>
                   )}
 
-                  {/* Next Button */}
-                  {filteredPhotos.length > 1 && (
+                  {filteredVideos.length > 1 && (
                     <button
-                      onClick={nextPhoto}
+                      onClick={nextVideo}
                       className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 cursor-pointer"
-                      aria-label="Next photo"
+                      aria-label="Next video"
                     >
                       <svg
                         className="w-6 h-6"
@@ -317,44 +316,16 @@ export default function GalleryPage() {
                     </button>
                   )}
 
-                  {/* Main Image */}
-                  <div className="relative max-w-full max-h-full">
-                    <Image
-                      src={photoStore.getPublicPhotoUrl(
-                        filteredPhotos[currentPhotoIndex]?.storage_path || ""
-                      )}
-                      alt={filteredPhotos[currentPhotoIndex]?.title || "Photo"}
-                      width={1200}
-                      height={800}
+                  <div className="relative w-full h-full max-w-full max-h-full flex items-center justify-center">
+                    <video
+                      src={filteredVideos[currentVideoIndex].publicUrl}
+                      controls
+                      autoPlay
                       className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-                      priority
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = "/placeholder.svg";
-                      }}
                     />
-
-                    {/* Image Info Overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 rounded-b-lg">
-                      {filteredPhotos[currentPhotoIndex]?.title && (
-                        <h3 className="text-white text-xl font-serif font-light mb-2">
-                          {filteredPhotos[currentPhotoIndex].title}
-                        </h3>
-                      )}
-                      <div className="flex justify-between items-center">
-                        <p className="text-white/70 text-sm font-light">
-                          Category:{" "}
-                          {filteredPhotos[currentPhotoIndex]?.category_name}
-                        </p>
-                        <p className="text-white/70 text-sm font-light">
-                          {currentPhotoIndex + 1} of {filteredPhotos.length}
-                        </p>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
-                {/* Background Overlay */}
                 <div
                   className="absolute inset-0 bg-black/90 -z-10 cursor-pointer"
                   onClick={closeLightbox}
@@ -363,7 +334,6 @@ export default function GalleryPage() {
               </div>
             )}
 
-          {/* Scroll to Top Button */}
           {showScrollTop && (
             <button
               onClick={scrollToTop}

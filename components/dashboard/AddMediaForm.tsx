@@ -14,7 +14,7 @@ interface AddMediaFormProps {
   showAddForm: boolean;
   dragActive: boolean;
   newPhoto: { category_id: string; files: File[] };
-  newVideo: { files: File[] };
+  newVideo: { category_id: string; files: File[] };
   categories: Category[];
   onDrag: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent) => void;
@@ -29,7 +29,10 @@ interface AddMediaFormProps {
     }
   ) => void;
   onSetNewVideo: (
-    updater: (prev: { files: File[] }) => { files: File[] }
+    updater: (prev: { category_id: string; files: File[] }) => {
+      category_id: string;
+      files: File[];
+    }
   ) => void;
   onCloseForm: () => void;
 }
@@ -315,6 +318,31 @@ export function AddMediaForm({
                   </label>
                 </div>
               )}
+            </div>
+            <div>
+              <label
+                htmlFor="video-category"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Category
+              </label>
+              <select
+                id="video-category"
+                value={newVideo.category_id}
+                onChange={(e) =>
+                  onSetNewVideo((prev) => ({
+                    ...prev,
+                    category_id: e.target.value,
+                  }))
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer"
+              >
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex space-x-4">
               <Button

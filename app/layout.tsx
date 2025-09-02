@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
+import { Playfair_Display, Cairo } from "next/font/google";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { AuthProvider } from "@/components/AuthProvider";
@@ -12,7 +12,7 @@ const playfair = Playfair_Display({
   variable: "--font-serif",
 });
 
-const inter = Inter({
+const cairo = Cairo({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-sans",
@@ -34,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
+    <html lang="en" className={`${playfair.variable} ${cairo.variable}`}>
       <body
         className="font-sans antialiased min-h-screen flex flex-col"
         cz-shortcut-listen="true"

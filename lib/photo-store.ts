@@ -25,20 +25,18 @@ class PhotoStore {
   private subscribers: (() => void)[] = [];
   private categorySubscribers: (() => void)[] = [];
 
-  private constructor() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error("Supabase URL and Anon Key are required.");
-    }
-
-    this.supabase = createClient(supabaseUrl, supabaseAnonKey);
+  private constructor(supabaseClient: any) {
+    this.supabase = supabaseClient;
   }
 
-  public static getInstance(): PhotoStore {
+  public static getInstance(supabaseClient?: any): PhotoStore {
     if (!PhotoStore.instance) {
-      PhotoStore.instance = new PhotoStore();
+      if (!supabaseClient) {
+        throw new Error(
+          "Supabase client must be provided on first instantiation."
+        );
+      }
+      PhotoStore.instance = new PhotoStore(supabaseClient);
     }
     return PhotoStore.instance;
   }

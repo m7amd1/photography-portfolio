@@ -92,11 +92,7 @@ export default function AboutPage() {
                     Beyond just taking photos, I aim to create visual stories
                     that reflect the identity and essence of each subject.
                     Whether it’s the inviting atmosphere of a restaurant, the
-                    elegance of a product, or the unique character of a project,
-                    my mission is to highlight what makes it truly special.
-                    Every frame I capture is designed not only to look visually
-                    appealing but also to communicate a clear message and evoke
-                    emotion.
+                    elegance of a product, or the unique character of a project.
                   </p>
                   <p>
                     With years of hands-on experience, I bring together
@@ -104,9 +100,7 @@ export default function AboutPage() {
                     high-quality photography and videography. My work is
                     tailored to meet the needs of businesses and individuals,
                     helping them present their ideas and brands in the best
-                    light. From concept planning and creative direction to
-                    precise editing and final delivery, I ensure a professional
-                    process that results in impactful, polished visuals.
+                    light.
                   </p>
                 </div>
               </div>
