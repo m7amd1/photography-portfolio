@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        console.log("Initial session data:", data);
+        // console.log("Initial session data:", data);
         if (!isMounted) return;
 
         clearTimeout(initTimeout);
@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange((_event, newSession) => {
       if (!isMounted) return;
 
-      console.log("Auth state change:", _event, newSession);
+      // console.log("Auth state change:", _event, newSession);
       setSession(newSession);
       setUser(newSession?.user ?? null);
 

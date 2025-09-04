@@ -332,7 +332,7 @@ export default function GalleryPage() {
                         filteredPhotos[currentPhotoIndex]?.storage_path || ""
                       )}
                       alt={filteredPhotos[currentPhotoIndex]?.title || "Photo"}
-                      width={1200}
+                      width={1000}
                       height={800}
                       className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
                       priority
