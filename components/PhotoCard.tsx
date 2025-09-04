@@ -34,7 +34,10 @@ export default function PhotoCard({
         isIntersecting ? "opacity-100 scale-100" : "opacity-0 scale-90"
       )}
       style={{ transitionDelay: `${index * 75}ms` }}
-      onClick={() => openLightbox(index)}
+      onClick={() => {
+        // console.log("PhotoCard clicked - Index:", index, "Photo ID:", photo.id, "Photo title:", photo.title);
+        openLightbox(index);
+      }}
     >
       <div className="relative aspect-square overflow-hidden rounded-none bg-gray-100 shadow-sm group-hover:shadow-lg transition-all duration-500">
         <Image

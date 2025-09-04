@@ -84,11 +84,14 @@ export default function GalleryPage() {
 
   // Reset current photo index when category changes
   useEffect(() => {
-    setCurrentPhotoIndex(0);
+    if (!lightboxOpen) {
+      // Only reset index when lightbox is closed
+      setCurrentPhotoIndex(0);
+    }
     if (lightboxOpen && filteredPhotos.length === 0) {
       closeLightbox();
     }
-  }, [selectedCategory, lightboxOpen, filteredPhotos.length]);
+  }, [selectedCategory]);
 
   const scrollToTop = () => {
     window.scrollTo({
@@ -293,7 +296,7 @@ export default function GalleryPage() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M15 19l-7-7 7-7"
+                          d="M15 19l-7-7 7-7m-7-7v18"
                         />
                       </svg>
                     </button>
